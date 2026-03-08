@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Client, PaginatedResponse } from '@/types';
 
@@ -42,6 +43,10 @@ export function useCreateClient() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
+      toast.success('Client created');
+    },
+    onError: () => {
+      toast.error('Failed to create client');
     },
   });
 }
@@ -55,6 +60,10 @@ export function useUpdateClient() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
+      toast.success('Client updated');
+    },
+    onError: () => {
+      toast.error('Failed to update client');
     },
   });
 }

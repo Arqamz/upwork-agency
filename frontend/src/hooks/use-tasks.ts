@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Task, PaginatedResponse } from '@/types';
 
@@ -43,6 +44,10 @@ export function useCreateTask() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task created');
+    },
+    onError: () => {
+      toast.error('Failed to create task');
     },
   });
 }
@@ -56,6 +61,10 @@ export function useUpdateTask() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task updated');
+    },
+    onError: () => {
+      toast.error('Failed to update task');
     },
   });
 }
@@ -69,6 +78,10 @@ export function useAssignTask() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task assigned');
+    },
+    onError: () => {
+      toast.error('Failed to assign task');
     },
   });
 }

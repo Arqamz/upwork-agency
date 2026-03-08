@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Deal, PaginatedResponse } from '@/types';
 
@@ -51,6 +52,10 @@ export function useCreateDeal() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['deals'] });
+      toast.success('Deal created');
+    },
+    onError: () => {
+      toast.error('Failed to create deal');
     },
   });
 }
@@ -64,6 +69,10 @@ export function useUpdateDeal() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['deals'] });
+      toast.success('Deal updated');
+    },
+    onError: () => {
+      toast.error('Failed to update deal');
     },
   });
 }
@@ -77,6 +86,10 @@ export function useCloseDeal() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['deals'] });
+      toast.success('Deal closed');
+    },
+    onError: () => {
+      toast.error('Failed to close deal');
     },
   });
 }

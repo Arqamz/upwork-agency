@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Script, PaginatedResponse } from '@/types';
 
@@ -42,6 +43,10 @@ export function useCreateScript() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['scripts'] });
+      toast.success('Script created');
+    },
+    onError: () => {
+      toast.error('Failed to create script');
     },
   });
 }
@@ -56,6 +61,10 @@ export function useCreateScriptVersion() {
     onSuccess: (_, { scriptId }) => {
       qc.invalidateQueries({ queryKey: ['scripts', scriptId] });
       qc.invalidateQueries({ queryKey: ['scripts'] });
+      toast.success('Script version created');
+    },
+    onError: () => {
+      toast.error('Failed to create script version');
     },
   });
 }

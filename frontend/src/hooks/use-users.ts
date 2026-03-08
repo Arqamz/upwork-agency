@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { User, PaginatedResponse } from '@/types';
 
@@ -44,6 +45,10 @@ export function useCreateUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success('User created');
+    },
+    onError: () => {
+      toast.error('Failed to create user');
     },
   });
 }
@@ -57,6 +62,10 @@ export function useUpdateUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success('User updated');
+    },
+    onError: () => {
+      toast.error('Failed to update user');
     },
   });
 }

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Meeting, PaginatedResponse } from '@/types';
 
@@ -42,6 +43,10 @@ export function useCreateMeeting() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Meeting scheduled');
+    },
+    onError: () => {
+      toast.error('Failed to schedule meeting');
     },
   });
 }
@@ -55,6 +60,10 @@ export function useUpdateMeeting() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Meeting updated');
+    },
+    onError: () => {
+      toast.error('Failed to update meeting');
     },
   });
 }
@@ -68,6 +77,10 @@ export function useCompleteMeeting() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Meeting completed');
+    },
+    onError: () => {
+      toast.error('Failed to complete meeting');
     },
   });
 }

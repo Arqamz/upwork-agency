@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Project, PaginatedResponse } from '@/types';
 
@@ -41,6 +42,10 @@ export function useCreateProject() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project created');
+    },
+    onError: () => {
+      toast.error('Failed to create project');
     },
   });
 }
@@ -54,6 +59,10 @@ export function useUpdateProject() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project updated');
+    },
+    onError: () => {
+      toast.error('Failed to update project');
     },
   });
 }
@@ -86,6 +95,10 @@ export function useCreateMilestone() {
     },
     onSuccess: (_, { projectId }) => {
       qc.invalidateQueries({ queryKey: ['projects', projectId, 'milestones'] });
+      toast.success('Milestone created');
+    },
+    onError: () => {
+      toast.error('Failed to create milestone');
     },
   });
 }
@@ -99,6 +112,10 @@ export function useCompleteMilestone() {
     },
     onSuccess: (_, { projectId }) => {
       qc.invalidateQueries({ queryKey: ['projects', projectId, 'milestones'] });
+      toast.success('Milestone completed');
+    },
+    onError: () => {
+      toast.error('Failed to complete milestone');
     },
   });
 }

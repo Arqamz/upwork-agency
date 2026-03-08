@@ -1,16 +1,20 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/api';
+import { useDashboardAnalytics } from '@/hooks/use-analytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 interface FunnelMetric {
   stage: string;
@@ -18,62 +22,56 @@ interface FunnelMetric {
   conversionRate: number;
 }
 
-interface DashboardAnalytics {
-  funnel: FunnelMetric[];
-  summary: {
-    totalProposals: number;
-    totalMeetings: number;
-    totalDeals: number;
-    totalRevenue: number;
-    avgDealSize: number;
-    winRate: number;
-  };
-  recentTrends: {
-    period: string;
-    proposals: number;
-    meetings: number;
-    deals: number;
-    revenue: number;
-  }[];
+interface TrendRow {
+  period: string;
+  proposals: number;
+  meetings: number;
+  deals: number;
+  revenue: number;
 }
 
-const fallbackData: DashboardAnalytics = {
+const fallbackData = {
   funnel: [
-    { stage: 'Proposals Sent', count: 2847, conversionRate: 100 },
-    { stage: 'Viewed', count: 1982, conversionRate: 69.6 },
-    { stage: 'Shortlisted', count: 743, conversionRate: 37.5 },
-    { stage: 'Interview', count: 312, conversionRate: 42.0 },
-    { stage: 'Won', count: 156, conversionRate: 50.0 },
-  ],
+    { stage: 'Proposals Sent', count: 0, conversionRate: 100 },
+    { stage: 'Viewed', count: 0, conversionRate: 0 },
+    { stage: 'Shortlisted', count: 0, conversionRate: 0 },
+    { stage: 'Interview', count: 0, conversionRate: 0 },
+    { stage: 'Won', count: 0, conversionRate: 0 },
+  ] as FunnelMetric[],
   summary: {
-    totalProposals: 2847,
-    totalMeetings: 312,
-    totalDeals: 156,
-    totalRevenue: 482300,
-    avgDealSize: 3092,
-    winRate: 50.0,
+    totalProposals: 0,
+    totalMeetings: 0,
+    totalDeals: 0,
+    totalRevenue: 0,
+    avgDealSize: 0,
+    winRate: 0,
   },
-  recentTrends: [
-    { period: 'Jan', proposals: 210, meetings: 28, deals: 12, revenue: 37100 },
-    { period: 'Feb', proposals: 245, meetings: 31, deals: 14, revenue: 43300 },
-    { period: 'Mar', proposals: 280, meetings: 35, deals: 18, revenue: 55700 },
-    { period: 'Apr', proposals: 260, meetings: 30, deals: 15, revenue: 46400 },
-    { period: 'May', proposals: 295, meetings: 38, deals: 20, revenue: 61900 },
-    { period: 'Jun', proposals: 310, meetings: 42, deals: 22, revenue: 68100 },
-  ],
+  recentTrends: [] as TrendRow[],
+};
+
+const CHART_COLORS = {
+  proposals: 'hsl(220, 70%, 55%)',
+  meetings: 'hsl(160, 60%, 45%)',
+  deals: 'hsl(30, 80%, 55%)',
+  revenue: 'hsl(260, 60%, 55%)',
 };
 
 export default function AnalyticsPage() {
-  const { data: analytics } = useQuery<DashboardAnalytics>({
-    queryKey: ['analytics', 'dashboard'],
-    queryFn: async () => {
-      const res = await api.get('/analytics/dashboard');
-      return res.data;
-    },
-    placeholderData: fallbackData,
-  });
+  const { data: analytics, isLoading } = useDashboardAnalytics();
 
   const data = analytics || fallbackData;
+  const summary = data.summary;
+  const funnel = data.funnel as FunnelMetric[];
+  const trends = (data.recentTrends || []) as TrendRow[];
+
+  const statCards = [
+    { label: 'Total Proposals', value: summary.totalProposals?.toLocaleString() ?? '0' },
+    { label: 'Total Meetings', value: summary.totalMeetings?.toLocaleString() ?? '0' },
+    { label: 'Deals Won', value: summary.totalDeals?.toLocaleString() ?? '0' },
+    { label: 'Revenue', value: `$${summary.totalRevenue?.toLocaleString() ?? '0'}` },
+    { label: 'Avg Deal Size', value: `$${summary.avgDealSize?.toLocaleString() ?? '0'}` },
+    { label: 'Win Rate', value: `${summary.winRate ?? 0}%` },
+  ];
 
   return (
     <div className="space-y-6">
@@ -83,20 +81,17 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {[
-          { label: 'Total Proposals', value: data.summary.totalProposals.toLocaleString() },
-          { label: 'Total Meetings', value: data.summary.totalMeetings.toLocaleString() },
-          { label: 'Deals Won', value: data.summary.totalDeals.toLocaleString() },
-          { label: 'Revenue', value: `$${data.summary.totalRevenue.toLocaleString()}` },
-          { label: 'Avg Deal Size', value: `$${data.summary.avgDealSize.toLocaleString()}` },
-          { label: 'Win Rate', value: `${data.summary.winRate}%` },
-        ].map((item) => (
+        {statCards.map((item) => (
           <Card key={item.label}>
             <CardContent className="p-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 {item.label}
               </p>
-              <p className="mt-1 text-xl font-semibold">{item.value}</p>
+              {isLoading ? (
+                <Skeleton className="h-6 w-16 mt-1" />
+              ) : (
+                <p className="mt-1 text-xl font-semibold">{item.value}</p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -107,35 +102,43 @@ export default function AnalyticsPage() {
           <CardTitle>Conversion Funnel</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {data.funnel.map((stage, index) => {
-              const maxCount = data.funnel[0].count;
-              const widthPercent = Math.max((stage.count / maxCount) * 100, 8);
-              return (
-                <div key={stage.stage} className="flex items-center gap-4">
-                  <div className="w-32 flex-shrink-0 text-sm text-muted-foreground text-right">
-                    {stage.stage}
-                  </div>
-                  <div className="flex-1 h-10 bg-muted rounded-lg overflow-hidden relative">
-                    <div
-                      className="h-full rounded-lg transition-all duration-500 flex items-center justify-end pr-3"
-                      style={{
-                        width: `${widthPercent}%`,
-                        backgroundColor: `hsl(${220 - index * 20}, 70%, ${55 + index * 5}%)`,
-                      }}
-                    >
-                      <span className="text-sm font-medium text-white drop-shadow-sm">
-                        {stage.count.toLocaleString()}
-                      </span>
+          {isLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {funnel.map((stage, index) => {
+                const maxCount = funnel[0]?.count || 1;
+                const widthPercent = Math.max((stage.count / maxCount) * 100, 8);
+                return (
+                  <div key={stage.stage} className="flex items-center gap-4">
+                    <div className="w-32 flex-shrink-0 text-sm text-muted-foreground text-right">
+                      {stage.stage}
+                    </div>
+                    <div className="flex-1 h-10 bg-muted rounded-lg overflow-hidden relative">
+                      <div
+                        className="h-full rounded-lg transition-all duration-500 flex items-center justify-end pr-3"
+                        style={{
+                          width: `${widthPercent}%`,
+                          backgroundColor: `hsl(${220 - index * 20}, 70%, ${55 + index * 5}%)`,
+                        }}
+                      >
+                        <span className="text-sm font-medium text-white drop-shadow-sm">
+                          {stage.count.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-16 text-sm text-muted-foreground text-right">
+                      {index === 0 ? '---' : `${stage.conversionRate}%`}
                     </div>
                   </div>
-                  <div className="w-16 text-sm text-muted-foreground text-right">
-                    {index === 0 ? '---' : `${stage.conversionRate}%`}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -143,29 +146,40 @@ export default function AnalyticsPage() {
         <CardHeader>
           <CardTitle>Monthly Trends</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Period</TableHead>
-                <TableHead>Proposals</TableHead>
-                <TableHead>Meetings</TableHead>
-                <TableHead>Deals</TableHead>
-                <TableHead>Revenue</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.recentTrends.map((row) => (
-                <TableRow key={row.period}>
-                  <TableCell className="font-medium">{row.period}</TableCell>
-                  <TableCell>{row.proposals}</TableCell>
-                  <TableCell>{row.meetings}</TableCell>
-                  <TableCell>{row.deals}</TableCell>
-                  <TableCell>${row.revenue.toLocaleString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent>
+          {isLoading ? (
+            <Skeleton className="h-80 w-full" />
+          ) : trends.length === 0 ? (
+            <div className="h-80 flex items-center justify-center text-muted-foreground text-sm">
+              No trend data available yet
+            </div>
+          ) : (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={trends} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis
+                    dataKey="period"
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="proposals" fill={CHART_COLORS.proposals} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="meetings" fill={CHART_COLORS.meetings} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="deals" fill={CHART_COLORS.deals} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -174,12 +188,53 @@ export default function AnalyticsPage() {
           <CardTitle>Revenue Over Time</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex items-center justify-center bg-muted/50 rounded-lg border-2 border-dashed border-border">
-            <div className="text-center">
-              <p className="text-muted-foreground text-sm">Chart visualization placeholder</p>
-              <p className="text-muted-foreground text-xs mt-1">Recharts integration pending</p>
+          {isLoading ? (
+            <Skeleton className="h-72 w-full" />
+          ) : trends.length === 0 ? (
+            <div className="h-72 flex items-center justify-center text-muted-foreground text-sm">
+              No revenue data available yet
             </div>
-          </div>
+          ) : (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trends} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={CHART_COLORS.revenue} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={CHART_COLORS.revenue} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis
+                    dataKey="period"
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke={CHART_COLORS.revenue}
+                    strokeWidth={2}
+                    fill="url(#revenueGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

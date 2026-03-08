@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Niche } from '@/types';
 
@@ -45,6 +46,10 @@ export function useCreateNiche() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['niches'] });
+      toast.success('Niche created');
+    },
+    onError: () => {
+      toast.error('Failed to create niche');
     },
   });
 }
@@ -58,6 +63,10 @@ export function useUpdateNiche() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['niches'] });
+      toast.success('Niche updated');
+    },
+    onError: () => {
+      toast.error('Failed to update niche');
     },
   });
 }
@@ -71,6 +80,10 @@ export function useAssignCloserToNiche() {
     },
     onSuccess: (_, { nicheId }) => {
       qc.invalidateQueries({ queryKey: ['niches', nicheId, 'closers'] });
+      toast.success('Closer assigned to niche');
+    },
+    onError: () => {
+      toast.error('Failed to assign closer');
     },
   });
 }
@@ -84,6 +97,10 @@ export function useRemoveCloserFromNiche() {
     },
     onSuccess: (_, { nicheId }) => {
       qc.invalidateQueries({ queryKey: ['niches', nicheId, 'closers'] });
+      toast.success('Closer removed from niche');
+    },
+    onError: () => {
+      toast.error('Failed to remove closer');
     },
   });
 }

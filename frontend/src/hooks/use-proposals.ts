@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Proposal, PaginatedResponse } from '@/types';
 
@@ -65,6 +66,10 @@ export function useCreateProposal() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Proposal created');
+    },
+    onError: () => {
+      toast.error('Failed to create proposal');
     },
   });
 }
@@ -78,6 +83,10 @@ export function useUpdateProposal() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Proposal updated');
+    },
+    onError: () => {
+      toast.error('Failed to update proposal');
     },
   });
 }
@@ -91,6 +100,10 @@ export function useUpdateProposalStatus() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Proposal status updated');
+    },
+    onError: () => {
+      toast.error('Failed to update proposal status');
     },
   });
 }
@@ -104,6 +117,10 @@ export function useClaimProposal() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Proposal claimed');
+    },
+    onError: () => {
+      toast.error('Failed to claim proposal');
     },
   });
 }
