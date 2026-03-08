@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtPayload } from '@/common/interfaces';
 import { User, Role } from '@prisma/client';
+import { UpdateProfileDto } from './dto';
 
 type UserWithRole = User & { role: Role };
 
@@ -96,6 +97,47 @@ export class AuthService {
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+    return { message: 'Password updated successfully' };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true, team: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+      },
+      include: { role: true, team: true },
+    });
+
+    const { passwordHash, ...result } = updated;
+    return result;
   }
 
   async generateTokens(user: UserWithRole) {

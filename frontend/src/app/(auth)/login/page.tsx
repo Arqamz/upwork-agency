@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuthContext } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function LoginPage() {
-  const { login, isLoading: authLoading } = useAuth();
+  const { login, isLoading: authLoading } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

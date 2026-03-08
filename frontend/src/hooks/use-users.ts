@@ -62,8 +62,18 @@ export function useCreateUser() {
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...data }: { id: string } & Partial<User>) => {
-      const res = await api.patch(`/users/${id}`, data);
+    mutationFn: async (data: {
+      id: string;
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      roleId?: string;
+      teamId?: string | null;
+      password?: string;
+      isActive?: boolean;
+    }) => {
+      const { id, ...rest } = data;
+      const res = await api.patch(`/users/${id}`, rest);
       return res.data;
     },
     onSuccess: () => {

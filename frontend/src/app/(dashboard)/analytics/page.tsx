@@ -59,10 +59,9 @@ const CHART_COLORS = {
 export default function AnalyticsPage() {
   const { data: analytics, isLoading } = useDashboardAnalytics();
 
-  const data = analytics || fallbackData;
-  const summary = data.summary;
-  const funnel = data.funnel as FunnelMetric[];
-  const trends = (data.recentTrends || []) as TrendRow[];
+  const summary = analytics?.summary ?? fallbackData.summary;
+  const funnel = (analytics?.funnel ?? fallbackData.funnel) as FunnelMetric[];
+  const trends = (analytics?.recentTrends ?? fallbackData.recentTrends) as TrendRow[];
 
   const statCards = [
     { label: 'Total Proposals', value: summary.totalProposals?.toLocaleString() ?? '0' },

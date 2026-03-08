@@ -92,15 +92,25 @@ export class UsersService {
       }
     }
 
+    const updateData: Record<string, unknown> = {
+      email: dto.email,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      roleId: dto.roleId,
+      teamId: dto.teamId,
+    };
+
+    if (dto.password) {
+      updateData.passwordHash = await bcrypt.hash(dto.password, 10);
+    }
+
+    if (dto.isActive !== undefined) {
+      updateData.isActive = dto.isActive;
+    }
+
     const user = await this.prisma.user.update({
       where: { id },
-      data: {
-        email: dto.email,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        roleId: dto.roleId,
-        teamId: dto.teamId,
-      },
+      data: updateData,
       include: { role: true, team: true },
     });
 
