@@ -14,6 +14,7 @@ import {
   Users,
   ScrollText,
   Layers,
+  UserCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,12 @@ const navItems: NavItem[] = [
     href: '/queue',
     icon: Layers,
     roles: ['admin', 'closer'],
+  },
+  {
+    label: 'Clients',
+    href: '/clients',
+    icon: UserCircle,
+    roles: ['admin', 'bidder', 'leadership'],
   },
   {
     label: 'Scripts',
