@@ -123,7 +123,7 @@ export class AnalyticsService {
           totalBids,
           totalWon,
           totalRevenue: revenueAgg._sum.contractValue ?? 0,
-          winRate: totalBids > 0 ? totalWon / totalBids : 0,
+          winRate: totalBids > 0 ? Math.round((totalWon / totalBids) * 1000) / 10 : 0,
         };
       }),
     );
@@ -187,10 +187,12 @@ export class AnalyticsService {
       totalWon,
       totalRevenue: revenueAgg._sum.contractValue ?? 0,
       conversionRates: {
-        bidRate: totalProjects > 0 ? totalBidSubmitted / totalProjects : 0,
-        viewRate: totalBidSubmitted > 0 ? totalViewed / totalBidSubmitted : 0,
-        interviewRate: totalViewed > 0 ? totalInterview / totalViewed : 0,
-        winRate: totalBidSubmitted > 0 ? totalWon / totalBidSubmitted : 0,
+        bidRate:
+          totalProjects > 0 ? Math.round((totalBidSubmitted / totalProjects) * 1000) / 10 : 0,
+        viewRate:
+          totalBidSubmitted > 0 ? Math.round((totalViewed / totalBidSubmitted) * 1000) / 10 : 0,
+        interviewRate: totalViewed > 0 ? Math.round((totalInterview / totalViewed) * 1000) / 10 : 0,
+        winRate: totalBidSubmitted > 0 ? Math.round((totalWon / totalBidSubmitted) * 1000) / 10 : 0,
       },
     };
   }

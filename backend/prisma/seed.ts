@@ -10,10 +10,85 @@ import {
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
+import { v5 as uuidv5 } from 'uuid';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+// Namespace UUID for deterministic v5 generation (randomly chosen, stable)
+const NS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // DNS namespace — safe to reuse
+
+/** Deterministic UUID from a human-readable slug */
+function sid(slug: string): string {
+  return uuidv5(slug, NS);
+}
+
+// Pre-computed IDs for cross-referencing
+const IDS = {
+  // Organizations
+  ORG_DEV: sid('org-dev'),
+  ORG_ACCOUNTING: sid('org-accounting'),
+  ORG_PARALEGAL: sid('org-paralegal'),
+  // Teams
+  TEAM_ALPHA: sid('team-alpha'),
+  TEAM_BETA: sid('team-beta'),
+  TEAM_OPS: sid('team-ops'),
+  TEAM_QA: sid('team-qa'),
+  // Users
+  USER_ADMIN: sid('user-admin'),
+  USER_LEAD: sid('user-lead'),
+  USER_BIDDER: sid('user-bidder'),
+  USER_BIDDER2: sid('user-bidder2'),
+  USER_CLOSER: sid('user-closer'),
+  USER_CLOSER2: sid('user-closer2'),
+  USER_PM: sid('user-pm'),
+  USER_OPERATOR: sid('user-operator'),
+  USER_OPERATOR2: sid('user-operator2'),
+  USER_QA: sid('user-qa'),
+  // Niches
+  NICHE_AI: sid('niche-ai'),
+  NICHE_WEB: sid('niche-web'),
+  NICHE_APP: sid('niche-app'),
+  NICHE_DEVOPS: sid('niche-devops'),
+  NICHE_BOOKKEEPING: sid('niche-bookkeeping'),
+  NICHE_TAX: sid('niche-tax'),
+  NICHE_LEGAL_RESEARCH: sid('niche-legal-research'),
+  // Projects
+  PROJ_1: sid('proj-1'),
+  PROJ_2: sid('proj-2'),
+  PROJ_3: sid('proj-3'),
+  PROJ_4: sid('proj-4'),
+  PROJ_5: sid('proj-5'),
+  PROJ_6: sid('proj-6'),
+  PROJ_7: sid('proj-7'),
+  PROJ_8: sid('proj-8'),
+  PROJ_9: sid('proj-9'),
+  PROJ_10: sid('proj-10'),
+  PROJ_11: sid('proj-11'),
+  PROJ_12: sid('proj-12'),
+  PROJ_13: sid('proj-13'),
+  // Meetings
+  MEET_1: sid('meet-1'),
+  MEET_2: sid('meet-2'),
+  MEET_3: sid('meet-3'),
+  MEET_4: sid('meet-4'),
+  // Tasks
+  TASK_1: sid('task-1'),
+  TASK_2: sid('task-2'),
+  TASK_3: sid('task-3'),
+  TASK_4: sid('task-4'),
+  TASK_5: sid('task-5'),
+  TASK_6: sid('task-6'),
+  TASK_7: sid('task-7'),
+  // Milestones
+  MS_1: sid('ms-1'),
+  MS_2: sid('ms-2'),
+  MS_3: sid('ms-3'),
+  MS_4: sid('ms-4'),
+  MS_5: sid('ms-5'),
+  MS_6: sid('ms-6'),
+};
 
 async function main() {
   console.log('Seeding database...');
@@ -53,10 +128,10 @@ async function seedRoles() {
 // -------------------------------------------------------
 async function seedTeams() {
   const teamDefs = [
-    { id: 'team-alpha', name: 'Alpha Sales' },
-    { id: 'team-beta', name: 'Beta Sales' },
-    { id: 'team-ops', name: 'Operations' },
-    { id: 'team-qa', name: 'QA' },
+    { id: IDS.TEAM_ALPHA, name: 'Alpha Sales' },
+    { id: IDS.TEAM_BETA, name: 'Beta Sales' },
+    { id: IDS.TEAM_OPS, name: 'Operations' },
+    { id: IDS.TEAM_QA, name: 'QA' },
   ];
 
   const teams: Record<string, { id: string; name: string }> = {};
@@ -79,21 +154,21 @@ async function seedTeams() {
 async function seedOrganizations() {
   const orgDefs = [
     {
-      id: 'org-dev',
+      id: IDS.ORG_DEV,
       name: 'Development Services',
       slug: 'development-services',
       description: 'Full-stack web & app development, AI automation, DevOps',
       isActive: true,
     },
     {
-      id: 'org-accounting',
+      id: IDS.ORG_ACCOUNTING,
       name: 'Accounting Services',
       slug: 'accounting-services',
       description: 'Bookkeeping, tax preparation, financial reporting',
       isActive: true,
     },
     {
-      id: 'org-paralegal',
+      id: IDS.ORG_PARALEGAL,
       name: 'Paralegal Services',
       slug: 'paralegal-services',
       description: 'Legal research, document drafting, case management',
@@ -106,7 +181,7 @@ async function seedOrganizations() {
   for (const o of orgDefs) {
     orgs[o.id] = await prisma.organization.upsert({
       where: { slug: o.slug },
-      update: { name: o.name, description: o.description, isActive: o.isActive },
+      update: { id: o.id, name: o.name, description: o.description, isActive: o.isActive },
       create: o,
     });
   }
@@ -126,84 +201,84 @@ async function seedUsers(
 
   const userDefs = [
     {
-      id: 'user-admin',
+      id: IDS.USER_ADMIN,
       email: 'admin@aop.local',
       firstName: 'Admin',
       lastName: 'User',
       roleId: roles.admin.id,
-      teamId: teams['team-alpha'].id,
+      teamId: teams[IDS.TEAM_ALPHA].id,
     },
     {
-      id: 'user-lead',
+      id: IDS.USER_LEAD,
       email: 'lead@aop.local',
       firstName: 'Morgan',
       lastName: 'Davis',
       roleId: roles.lead.id,
-      teamId: teams['team-alpha'].id,
+      teamId: teams[IDS.TEAM_ALPHA].id,
     },
     {
-      id: 'user-bidder',
+      id: IDS.USER_BIDDER,
       email: 'bidder@aop.local',
       firstName: 'Sarah',
       lastName: 'Chen',
       roleId: roles.bidder.id,
-      teamId: teams['team-alpha'].id,
+      teamId: teams[IDS.TEAM_ALPHA].id,
     },
     {
-      id: 'user-bidder2',
+      id: IDS.USER_BIDDER2,
       email: 'bidder2@aop.local',
       firstName: 'Ryan',
       lastName: 'Park',
       roleId: roles.bidder.id,
-      teamId: teams['team-alpha'].id,
+      teamId: teams[IDS.TEAM_ALPHA].id,
     },
     {
-      id: 'user-closer',
+      id: IDS.USER_CLOSER,
       email: 'closer@aop.local',
       firstName: 'James',
       lastName: 'Wilson',
       roleId: roles.closer.id,
-      teamId: teams['team-alpha'].id,
+      teamId: teams[IDS.TEAM_ALPHA].id,
     },
     {
-      id: 'user-closer2',
+      id: IDS.USER_CLOSER2,
       email: 'closer2@aop.local',
       firstName: 'Maria',
       lastName: 'Garcia',
       roleId: roles.closer.id,
-      teamId: teams['team-alpha'].id,
+      teamId: teams[IDS.TEAM_ALPHA].id,
     },
     {
-      id: 'user-pm',
+      id: IDS.USER_PM,
       email: 'pm@aop.local',
       firstName: 'Taylor',
       lastName: 'Brooks',
       roleId: roles.project_manager.id,
-      teamId: teams['team-ops'].id,
+      teamId: teams[IDS.TEAM_OPS].id,
     },
     {
-      id: 'user-operator',
+      id: IDS.USER_OPERATOR,
       email: 'operator@aop.local',
       firstName: 'Alex',
       lastName: 'Kim',
       roleId: roles.operator.id,
-      teamId: teams['team-ops'].id,
+      teamId: teams[IDS.TEAM_OPS].id,
     },
     {
-      id: 'user-operator2',
+      id: IDS.USER_OPERATOR2,
       email: 'operator2@aop.local',
       firstName: 'Casey',
       lastName: 'Rivera',
       roleId: roles.operator.id,
-      teamId: teams['team-ops'].id,
+      teamId: teams[IDS.TEAM_OPS].id,
     },
     {
-      id: 'user-qa',
+      id: IDS.USER_QA,
       email: 'qa@aop.local',
       firstName: 'Pat',
       lastName: 'Taylor',
       roleId: roles.qa.id,
-      teamId: teams['team-qa'].id,
+      teamId: teams[IDS.TEAM_QA].id,
     },
   ];
 
@@ -213,6 +288,7 @@ async function seedUsers(
     users[u.id] = await prisma.user.upsert({
       where: { email: u.email },
       update: {
+        id: u.id,
         firstName: u.firstName,
         lastName: u.lastName,
         roleId: u.roleId,
@@ -248,15 +324,18 @@ async function seedUserOrganizations(
   // Some also belong to Accounting/Paralegal for demo purposes
   const assignments = [
     // Everyone in dev org
-    ...Object.values(users).map((u) => ({ userId: u.id, organizationId: orgs['org-dev'].id })),
+    ...Object.values(users).map((u) => ({
+      userId: u.id,
+      organizationId: orgs[IDS.ORG_DEV].id,
+    })),
     // Lead and admin also in accounting
-    { userId: users['user-admin'].id, organizationId: orgs['org-accounting'].id },
-    { userId: users['user-lead'].id, organizationId: orgs['org-accounting'].id },
-    { userId: users['user-bidder'].id, organizationId: orgs['org-accounting'].id },
-    { userId: users['user-closer'].id, organizationId: orgs['org-accounting'].id },
+    { userId: users[IDS.USER_ADMIN].id, organizationId: orgs[IDS.ORG_ACCOUNTING].id },
+    { userId: users[IDS.USER_LEAD].id, organizationId: orgs[IDS.ORG_ACCOUNTING].id },
+    { userId: users[IDS.USER_BIDDER].id, organizationId: orgs[IDS.ORG_ACCOUNTING].id },
+    { userId: users[IDS.USER_CLOSER].id, organizationId: orgs[IDS.ORG_ACCOUNTING].id },
     // Admin and lead also in paralegal
-    { userId: users['user-admin'].id, organizationId: orgs['org-paralegal'].id },
-    { userId: users['user-lead'].id, organizationId: orgs['org-paralegal'].id },
+    { userId: users[IDS.USER_ADMIN].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
+    { userId: users[IDS.USER_LEAD].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
   ];
 
   for (const a of assignments) {
@@ -277,55 +356,55 @@ async function seedNiches(orgs: Record<string, { id: string }>) {
   const nicheDefs = [
     // Development Services niches
     {
-      id: 'niche-ai',
+      id: IDS.NICHE_AI,
       name: 'AI Automation',
       slug: 'ai-automation',
       description: 'AI agents, chatbots, workflow automation',
-      organizationId: orgs['org-dev'].id,
+      organizationId: orgs[IDS.ORG_DEV].id,
     },
     {
-      id: 'niche-web',
+      id: IDS.NICHE_WEB,
       name: 'Web Development',
       slug: 'web-development',
       description: 'Full-stack web applications and websites',
-      organizationId: orgs['org-dev'].id,
+      organizationId: orgs[IDS.ORG_DEV].id,
     },
     {
-      id: 'niche-app',
+      id: IDS.NICHE_APP,
       name: 'App Development',
       slug: 'app-development',
       description: 'Mobile and desktop applications',
-      organizationId: orgs['org-dev'].id,
+      organizationId: orgs[IDS.ORG_DEV].id,
     },
     {
-      id: 'niche-devops',
+      id: IDS.NICHE_DEVOPS,
       name: 'DevOps & Cloud',
       slug: 'devops-cloud',
       description: 'Infrastructure, CI/CD, cloud architecture',
-      organizationId: orgs['org-dev'].id,
+      organizationId: orgs[IDS.ORG_DEV].id,
     },
     // Accounting Services niches
     {
-      id: 'niche-bookkeeping',
+      id: IDS.NICHE_BOOKKEEPING,
       name: 'Bookkeeping',
       slug: 'bookkeeping',
       description: 'Day-to-day financial record keeping',
-      organizationId: orgs['org-accounting'].id,
+      organizationId: orgs[IDS.ORG_ACCOUNTING].id,
     },
     {
-      id: 'niche-tax',
+      id: IDS.NICHE_TAX,
       name: 'Tax Preparation',
       slug: 'tax-preparation',
       description: 'Individual and business tax filing',
-      organizationId: orgs['org-accounting'].id,
+      organizationId: orgs[IDS.ORG_ACCOUNTING].id,
     },
     // Paralegal Services niches
     {
-      id: 'niche-legal-research',
+      id: IDS.NICHE_LEGAL_RESEARCH,
       name: 'Legal Research',
       slug: 'legal-research',
       description: 'Case law research and memoranda',
-      organizationId: orgs['org-paralegal'].id,
+      organizationId: orgs[IDS.ORG_PARALEGAL].id,
     },
   ];
 
@@ -334,7 +413,7 @@ async function seedNiches(orgs: Record<string, { id: string }>) {
   for (const n of nicheDefs) {
     niches[n.id] = await prisma.niche.upsert({
       where: { slug_organizationId: { slug: n.slug, organizationId: n.organizationId } },
-      update: { name: n.name, description: n.description },
+      update: { id: n.id, name: n.name, description: n.description },
       create: n,
     });
   }
@@ -352,13 +431,13 @@ async function seedProjects(
   niches: Record<string, { id: string }>,
   teams: Record<string, { id: string }>,
 ) {
-  const orgId = orgs['org-dev'].id;
-  const teamId = teams['team-alpha'].id;
+  const orgId = orgs[IDS.ORG_DEV].id;
+  const teamId = teams[IDS.TEAM_ALPHA].id;
 
   const projectDefs = [
     // Stage: DISCOVERED
     {
-      id: 'proj-1',
+      id: IDS.PROJ_1,
       title: 'Build AI Customer Support Chatbot',
       jobUrl: 'https://www.upwork.com/jobs/~01abc123',
       jobDescription:
@@ -367,13 +446,13 @@ async function seedProjects(
       fixedPrice: 8000,
       stage: ProjectStage.DISCOVERED,
       organizationId: orgId,
-      nicheId: niches['niche-ai'].id,
+      nicheId: niches[IDS.NICHE_AI].id,
       teamId,
-      discoveredById: users['user-bidder'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
     },
     // Stage: SCRIPTED
     {
-      id: 'proj-2',
+      id: IDS.PROJ_2,
       title: 'React Dashboard for SaaS Analytics Platform',
       jobUrl: 'https://www.upwork.com/jobs/~01def456',
       jobDescription:
@@ -387,14 +466,14 @@ async function seedProjects(
       videoScript:
         'Open with: Show our portfolio dashboard. Key points: 1) Team expertise in React/TypeScript 2) Examples of analytics dashboards we built 3) Our process: discovery → wireframe → build → iterate. Close with: Offer a free 30min consultation call.',
       organizationId: orgId,
-      nicheId: niches['niche-web'].id,
+      nicheId: niches[IDS.NICHE_WEB].id,
       teamId,
-      discoveredById: users['user-bidder2'].id,
-      lastEditedById: users['user-bidder'].id,
+      discoveredById: users[IDS.USER_BIDDER2].id,
+      lastEditedById: users[IDS.USER_BIDDER].id,
     },
     // Stage: UNDER_REVIEW
     {
-      id: 'proj-3',
+      id: IDS.PROJ_3,
       title: 'Flutter Mobile App for Fitness Tracking',
       jobUrl: 'https://www.upwork.com/jobs/~01ghi789',
       jobDescription:
@@ -407,14 +486,14 @@ async function seedProjects(
       videoScript:
         'Demo our existing Flutter fitness app. Highlight: smooth animations, offline mode, BLE device integration. Show our development timeline approach.',
       organizationId: orgId,
-      nicheId: niches['niche-app'].id,
+      nicheId: niches[IDS.NICHE_APP].id,
       teamId,
-      discoveredById: users['user-bidder'].id,
-      lastEditedById: users['user-bidder'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
+      lastEditedById: users[IDS.USER_BIDDER].id,
     },
     // Stage: ASSIGNED
     {
-      id: 'proj-4',
+      id: IDS.PROJ_4,
       title: 'AWS Infrastructure Setup & CI/CD Pipeline',
       jobUrl: 'https://www.upwork.com/jobs/~01jkl012',
       jobDescription:
@@ -427,15 +506,15 @@ async function seedProjects(
       videoScript:
         'Walk through our AWS architecture diagram. Show a live deployment pipeline. Emphasize: security best practices, cost optimization, disaster recovery.',
       organizationId: orgId,
-      nicheId: niches['niche-devops'].id,
+      nicheId: niches[IDS.NICHE_DEVOPS].id,
       teamId,
-      discoveredById: users['user-bidder2'].id,
-      lastEditedById: users['user-bidder2'].id,
-      assignedCloserId: users['user-closer'].id,
+      discoveredById: users[IDS.USER_BIDDER2].id,
+      lastEditedById: users[IDS.USER_BIDDER2].id,
+      assignedCloserId: users[IDS.USER_CLOSER].id,
     },
     // Stage: BID_SUBMITTED
     {
-      id: 'proj-5',
+      id: IDS.PROJ_5,
       title: 'N8N Automation Workflow for Lead Generation',
       jobUrl: 'https://www.upwork.com/jobs/~01mno345',
       jobDescription:
@@ -452,15 +531,15 @@ async function seedProjects(
       bidAmount: 2400,
       bidSubmittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       organizationId: orgId,
-      nicheId: niches['niche-ai'].id,
+      nicheId: niches[IDS.NICHE_AI].id,
       teamId,
-      discoveredById: users['user-bidder'].id,
-      lastEditedById: users['user-bidder'].id,
-      assignedCloserId: users['user-closer2'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
+      lastEditedById: users[IDS.USER_BIDDER].id,
+      assignedCloserId: users[IDS.USER_CLOSER2].id,
     },
     // Stage: VIEWED
     {
-      id: 'proj-6',
+      id: IDS.PROJ_6,
       title: 'Next.js E-Commerce Platform with Shopify Integration',
       jobUrl: 'https://www.upwork.com/jobs/~01pqr678',
       jobDescription:
@@ -474,15 +553,15 @@ async function seedProjects(
       bidAmount: 9500,
       bidSubmittedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
       organizationId: orgId,
-      nicheId: niches['niche-web'].id,
+      nicheId: niches[IDS.NICHE_WEB].id,
       teamId,
-      discoveredById: users['user-bidder2'].id,
-      lastEditedById: users['user-bidder2'].id,
-      assignedCloserId: users['user-closer'].id,
+      discoveredById: users[IDS.USER_BIDDER2].id,
+      lastEditedById: users[IDS.USER_BIDDER2].id,
+      assignedCloserId: users[IDS.USER_CLOSER].id,
     },
     // Stage: MESSAGED
     {
-      id: 'proj-7',
+      id: IDS.PROJ_7,
       title: 'Python Data Pipeline & BI Dashboard',
       jobUrl: 'https://www.upwork.com/jobs/~01stu901',
       jobDescription:
@@ -495,14 +574,14 @@ async function seedProjects(
       bidAmount: 6000,
       bidSubmittedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
       organizationId: orgId,
-      nicheId: niches['niche-web'].id,
+      nicheId: niches[IDS.NICHE_WEB].id,
       teamId,
-      discoveredById: users['user-bidder'].id,
-      assignedCloserId: users['user-closer2'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
+      assignedCloserId: users[IDS.USER_CLOSER2].id,
     },
     // Stage: INTERVIEW
     {
-      id: 'proj-8',
+      id: IDS.PROJ_8,
       title: 'OpenAI-Powered Document Processing System',
       jobUrl: 'https://www.upwork.com/jobs/~01vwx234',
       jobDescription:
@@ -514,14 +593,14 @@ async function seedProjects(
       bidAmount: 14500,
       bidSubmittedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
       organizationId: orgId,
-      nicheId: niches['niche-ai'].id,
+      nicheId: niches[IDS.NICHE_AI].id,
       teamId,
-      discoveredById: users['user-bidder2'].id,
-      assignedCloserId: users['user-closer'].id,
+      discoveredById: users[IDS.USER_BIDDER2].id,
+      assignedCloserId: users[IDS.USER_CLOSER].id,
     },
     // Stage: WON
     {
-      id: 'proj-9',
+      id: IDS.PROJ_9,
       title: 'SaaS Subscription Management Platform',
       jobUrl: 'https://www.upwork.com/jobs/~01yza567',
       jobDescription:
@@ -537,15 +616,15 @@ async function seedProjects(
         'Very responsive client. Prefers async communication via Slack. Has existing codebase in Next.js + NestJS. Weekly check-in calls on Fridays.',
       contractValue: 18000,
       organizationId: orgId,
-      nicheId: niches['niche-web'].id,
+      nicheId: niches[IDS.NICHE_WEB].id,
       teamId,
-      discoveredById: users['user-bidder'].id,
-      assignedCloserId: users['user-closer'].id,
-      assignedPMId: users['user-pm'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
+      assignedCloserId: users[IDS.USER_CLOSER].id,
+      assignedPMId: users[IDS.USER_PM].id,
     },
     // Stage: IN_PROGRESS
     {
-      id: 'proj-10',
+      id: IDS.PROJ_10,
       title: 'Kubernetes Migration for Monolith App',
       jobUrl: 'https://www.upwork.com/jobs/~01bcd890',
       jobDescription:
@@ -563,15 +642,15 @@ async function seedProjects(
       contractValue: 22000,
       startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       organizationId: orgId,
-      nicheId: niches['niche-devops'].id,
+      nicheId: niches[IDS.NICHE_DEVOPS].id,
       teamId,
-      discoveredById: users['user-bidder2'].id,
-      assignedCloserId: users['user-closer2'].id,
-      assignedPMId: users['user-pm'].id,
+      discoveredById: users[IDS.USER_BIDDER2].id,
+      assignedCloserId: users[IDS.USER_CLOSER2].id,
+      assignedPMId: users[IDS.USER_PM].id,
     },
     // Stage: COMPLETED
     {
-      id: 'proj-11',
+      id: IDS.PROJ_11,
       title: 'WhatsApp Business API Integration',
       pricingType: PricingType.FIXED,
       fixedPrice: 3500,
@@ -581,15 +660,15 @@ async function seedProjects(
       startDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
       endDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
       organizationId: orgId,
-      nicheId: niches['niche-ai'].id,
+      nicheId: niches[IDS.NICHE_AI].id,
       teamId,
-      discoveredById: users['user-bidder'].id,
-      assignedCloserId: users['user-closer'].id,
-      assignedPMId: users['user-pm'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
+      assignedCloserId: users[IDS.USER_CLOSER].id,
+      assignedPMId: users[IDS.USER_PM].id,
     },
     // Stage: LOST
     {
-      id: 'proj-12',
+      id: IDS.PROJ_12,
       title: 'Unity Game Development — Casual Mobile Game',
       jobUrl: 'https://www.upwork.com/jobs/~01efg123',
       pricingType: PricingType.FIXED,
@@ -599,12 +678,12 @@ async function seedProjects(
       bidAmount: 24000,
       organizationId: orgId,
       teamId,
-      discoveredById: users['user-bidder2'].id,
-      assignedCloserId: users['user-closer2'].id,
+      discoveredById: users[IDS.USER_BIDDER2].id,
+      assignedCloserId: users[IDS.USER_CLOSER2].id,
     },
     // Stage: CANCELLED
     {
-      id: 'proj-13',
+      id: IDS.PROJ_13,
       title: 'Blockchain NFT Marketplace',
       jobUrl: 'https://www.upwork.com/jobs/~01hij456',
       pricingType: PricingType.FIXED,
@@ -612,7 +691,7 @@ async function seedProjects(
       stage: ProjectStage.CANCELLED,
       organizationId: orgId,
       teamId,
-      discoveredById: users['user-bidder'].id,
+      discoveredById: users[IDS.USER_BIDDER].id,
     },
   ];
 
@@ -627,7 +706,7 @@ async function seedProjects(
   console.log(`  Projects seeded: ${projectDefs.length} across all pipeline stages.`);
 
   // Seed meetings for interview-stage and beyond
-  await seedMeetings(users, orgs);
+  await seedMeetings(users);
 
   // Seed tasks for in-progress projects
   await seedTasks(users);
@@ -639,15 +718,12 @@ async function seedProjects(
 // -------------------------------------------------------
 // Meetings
 // -------------------------------------------------------
-async function seedMeetings(
-  users: Record<string, { id: string }>,
-  _orgs: Record<string, { id: string }>,
-) {
+async function seedMeetings(users: Record<string, { id: string }>) {
   const meetingDefs = [
     {
-      id: 'meet-1',
-      projectId: 'proj-8', // INTERVIEW stage
-      closerId: users['user-closer'].id,
+      id: IDS.MEET_1,
+      projectId: IDS.PROJ_8, // INTERVIEW stage
+      closerId: users[IDS.USER_CLOSER].id,
       type: MeetingType.INTERVIEW,
       scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
       status: MeetingStatus.SCHEDULED,
@@ -656,9 +732,9 @@ async function seedMeetings(
       meetingUrl: 'https://meet.google.com/abc-defg-hij',
     },
     {
-      id: 'meet-2',
-      projectId: 'proj-10', // IN_PROGRESS
-      closerId: users['user-closer2'].id,
+      id: IDS.MEET_2,
+      projectId: IDS.PROJ_10, // IN_PROGRESS
+      closerId: users[IDS.USER_CLOSER2].id,
       type: MeetingType.CLIENT_CHECKIN,
       scheduledAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
@@ -670,9 +746,9 @@ async function seedMeetings(
       loomUrl: 'https://loom.com/share/def456',
     },
     {
-      id: 'meet-3',
-      projectId: 'proj-10', // IN_PROGRESS — upcoming
-      closerId: users['user-closer2'].id,
+      id: IDS.MEET_3,
+      projectId: IDS.PROJ_10, // IN_PROGRESS — upcoming
+      closerId: users[IDS.USER_CLOSER2].id,
       type: MeetingType.CLIENT_CHECKIN,
       scheduledAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
       status: MeetingStatus.SCHEDULED,
@@ -680,9 +756,9 @@ async function seedMeetings(
       meetingUrl: 'https://zoom.us/j/987654321',
     },
     {
-      id: 'meet-4',
-      projectId: 'proj-9', // WON — kickoff
-      closerId: users['user-closer'].id,
+      id: IDS.MEET_4,
+      projectId: IDS.PROJ_9, // WON — kickoff
+      closerId: users[IDS.USER_CLOSER].id,
       type: MeetingType.CLIENT_CHECKIN,
       scheduledAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
       status: MeetingStatus.SCHEDULED,
@@ -709,9 +785,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
   const taskDefs = [
     // proj-10 (IN_PROGRESS — K8s migration)
     {
-      id: 'task-1',
-      projectId: 'proj-10',
-      assigneeId: users['user-operator'].id,
+      id: IDS.TASK_1,
+      projectId: IDS.PROJ_10,
+      assigneeId: users[IDS.USER_OPERATOR].id,
       title: 'Containerize auth service with Docker',
       description:
         'Create Dockerfile, docker-compose for local dev, and push to ECR. Follow the monorepo structure.',
@@ -721,9 +797,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
       completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     },
     {
-      id: 'task-2',
-      projectId: 'proj-10',
-      assigneeId: users['user-operator'].id,
+      id: IDS.TASK_2,
+      projectId: IDS.PROJ_10,
+      assigneeId: users[IDS.USER_OPERATOR].id,
       title: 'Containerize user service with Docker',
       description:
         'Create Dockerfile for user service. Ensure DB connection pooling config works in container env.',
@@ -732,9 +808,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
       estimatedHours: 6,
     },
     {
-      id: 'task-3',
-      projectId: 'proj-10',
-      assigneeId: users['user-operator2'].id,
+      id: IDS.TASK_3,
+      projectId: IDS.PROJ_10,
+      assigneeId: users[IDS.USER_OPERATOR2].id,
       title: 'Write K8s manifests for auth + user services',
       description: 'Deployments, Services, ConfigMaps, Secrets (sealed). Include HPA configs.',
       status: TaskStatus.IN_PROGRESS,
@@ -742,9 +818,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
       estimatedHours: 10,
     },
     {
-      id: 'task-4',
-      projectId: 'proj-10',
-      assigneeId: users['user-operator2'].id,
+      id: IDS.TASK_4,
+      projectId: IDS.PROJ_10,
+      assigneeId: users[IDS.USER_OPERATOR2].id,
       title: 'Set up GitHub Actions CI/CD pipeline',
       description:
         'Build + test + deploy pipeline. Trigger on PR merge to main. Deploy to staging first, then prod with manual approval.',
@@ -753,9 +829,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
       estimatedHours: 12,
     },
     {
-      id: 'task-5',
-      projectId: 'proj-10',
-      assigneeId: users['user-operator'].id,
+      id: IDS.TASK_5,
+      projectId: IDS.PROJ_10,
+      assigneeId: users[IDS.USER_OPERATOR].id,
       title: 'Configure Datadog APM for all services',
       description:
         'Install dd-trace in each service, set up dashboards, create alerts for p99 latency > 500ms.',
@@ -765,9 +841,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
     },
     // proj-9 (WON — just starting)
     {
-      id: 'task-6',
-      projectId: 'proj-9',
-      assigneeId: users['user-operator'].id,
+      id: IDS.TASK_6,
+      projectId: IDS.PROJ_9,
+      assigneeId: users[IDS.USER_OPERATOR].id,
       title: 'Set up Next.js project with Stripe integration',
       description:
         'Initialize project, install Stripe SDK, set up webhooks endpoint, configure products/prices in Stripe dashboard.',
@@ -776,9 +852,9 @@ async function seedTasks(users: Record<string, { id: string }>) {
       estimatedHours: 8,
     },
     {
-      id: 'task-7',
-      projectId: 'proj-9',
-      assigneeId: users['user-operator2'].id,
+      id: IDS.TASK_7,
+      projectId: IDS.PROJ_9,
+      assigneeId: users[IDS.USER_OPERATOR2].id,
       title: 'Build subscription management backend',
       description:
         'NestJS service for subscription CRUD, plan changes, usage tracking. Integrate with Stripe Customer Portal.',
@@ -800,11 +876,11 @@ async function seedTasks(users: Record<string, { id: string }>) {
 
   // QA review for the completed task
   await prisma.qAReview.upsert({
-    where: { taskId: 'task-1' },
+    where: { taskId: IDS.TASK_1 },
     update: {},
     create: {
-      taskId: 'task-1',
-      reviewerId: users['user-qa'].id,
+      taskId: IDS.TASK_1,
+      reviewerId: users[IDS.USER_QA].id,
       status: 'APPROVED',
       score: 9,
       comments:
@@ -822,24 +898,24 @@ async function seedMilestones() {
   const milestoneDefs = [
     // proj-10 milestones
     {
-      id: 'ms-1',
-      projectId: 'proj-10',
+      id: IDS.MS_1,
+      projectId: IDS.PROJ_10,
       name: 'Phase 1: Service Containerization',
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       amount: 7333,
       completed: false,
     },
     {
-      id: 'ms-2',
-      projectId: 'proj-10',
+      id: IDS.MS_2,
+      projectId: IDS.PROJ_10,
       name: 'Phase 2: K8s Deployment & CI/CD',
       dueDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
       amount: 7333,
       completed: false,
     },
     {
-      id: 'ms-3',
-      projectId: 'proj-10',
+      id: IDS.MS_3,
+      projectId: IDS.PROJ_10,
       name: 'Phase 3: Monitoring & Cutover',
       dueDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
       amount: 7334,
@@ -847,16 +923,16 @@ async function seedMilestones() {
     },
     // proj-9 milestones
     {
-      id: 'ms-4',
-      projectId: 'proj-9',
+      id: IDS.MS_4,
+      projectId: IDS.PROJ_9,
       name: 'Billing & Subscription Core',
       dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       amount: 9000,
       completed: false,
     },
     {
-      id: 'ms-5',
-      projectId: 'proj-9',
+      id: IDS.MS_5,
+      projectId: IDS.PROJ_9,
       name: 'Customer Portal & Final Delivery',
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       amount: 9000,
@@ -864,8 +940,8 @@ async function seedMilestones() {
     },
     // proj-11 (completed)
     {
-      id: 'ms-6',
-      projectId: 'proj-11',
+      id: IDS.MS_6,
+      projectId: IDS.PROJ_11,
       name: 'WhatsApp API Integration Delivery',
       dueDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
       amount: 3500,
