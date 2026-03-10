@@ -1,5 +1,6 @@
 const TOKEN_KEY = 'aop_token';
 const REFRESH_TOKEN_KEY = 'aop_refresh_token';
+const ACTIVE_ORG_KEY = 'aop_active_org';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -45,6 +46,7 @@ export interface TokenUser {
   email: string;
   role: string;
   teamId?: string;
+  organizationId?: string;
 }
 
 export function getUser(): TokenUser | null {
@@ -58,8 +60,24 @@ export function getUser(): TokenUser | null {
       email: payload.email,
       role: payload.role,
       teamId: payload.teamId,
+      organizationId: payload.organizationId,
     };
   } catch {
     return null;
   }
+}
+
+export function getActiveOrg(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(ACTIVE_ORG_KEY);
+}
+
+export function setActiveOrg(orgId: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ACTIVE_ORG_KEY, orgId);
+}
+
+export function removeActiveOrg(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(ACTIVE_ORG_KEY);
 }

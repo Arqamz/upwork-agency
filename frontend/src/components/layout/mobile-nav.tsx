@@ -2,112 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  FileText,
-  Video,
-  Calendar,
-  DollarSign,
-  FolderKanban,
-  ListChecks,
-  BarChart3,
-  Users,
-  ScrollText,
-  Layers,
-  UserCircle,
-  ClipboardCheck,
-  type LucideIcon,
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/components/auth-provider';
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  roles: string[];
-}
-
-const navItems: NavItem[] = [
-  {
-    label: 'Dashboard',
-    href: '/',
-    icon: LayoutDashboard,
-    roles: ['admin', 'bidder', 'closer', 'developer', 'qa', 'script_writer', 'leadership'],
-  },
-  {
-    label: 'Proposals',
-    href: '/proposals',
-    icon: FileText,
-    roles: ['admin', 'bidder', 'closer', 'leadership'],
-  },
-  {
-    label: 'Niche Queue',
-    href: '/queue',
-    icon: Layers,
-    roles: ['admin', 'closer'],
-  },
-  {
-    label: 'Clients',
-    href: '/clients',
-    icon: UserCircle,
-    roles: ['admin', 'bidder', 'leadership'],
-  },
-  {
-    label: 'Scripts',
-    href: '/scripts',
-    icon: ScrollText,
-    roles: ['admin', 'bidder', 'script_writer', 'leadership'],
-  },
-  {
-    label: 'Video Proposals',
-    href: '/videos',
-    icon: Video,
-    roles: ['admin', 'closer', 'leadership', 'qa'],
-  },
-  {
-    label: 'Meetings',
-    href: '/meetings',
-    icon: Calendar,
-    roles: ['admin', 'closer', 'leadership'],
-  },
-  {
-    label: 'Deals',
-    href: '/deals',
-    icon: DollarSign,
-    roles: ['admin', 'closer', 'leadership'],
-  },
-  {
-    label: 'Projects',
-    href: '/projects',
-    icon: FolderKanban,
-    roles: ['admin', 'developer', 'leadership', 'qa'],
-  },
-  {
-    label: 'Tasks',
-    href: '/tasks',
-    icon: ListChecks,
-    roles: ['admin', 'developer', 'qa'],
-  },
-  {
-    label: 'QA Reviews',
-    href: '/qa-reviews',
-    icon: ClipboardCheck,
-    roles: ['admin', 'qa', 'developer', 'leadership'],
-  },
-  {
-    label: 'Analytics',
-    href: '/analytics',
-    icon: BarChart3,
-    roles: ['admin', 'leadership'],
-  },
-  {
-    label: 'Users',
-    href: '/users',
-    icon: Users,
-    roles: ['admin'],
-  },
-];
+import { OrgSwitcher } from '@/components/layout/org-switcher';
+import { navItems } from '@/components/layout/sidebar';
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -145,6 +43,7 @@ export function MobileNav() {
           );
         })}
       </nav>
+      <OrgSwitcher />
     </div>
   );
 }

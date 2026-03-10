@@ -1,14 +1,29 @@
 // ─── Enums (matching Prisma schema) ──────────────────────────────────────────
 
-export enum ProposalStatus {
-  DRAFT = 'DRAFT',
-  SENT = 'SENT',
+export enum ProjectStage {
+  DISCOVERED = 'DISCOVERED',
+  SCRIPTED = 'SCRIPTED',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  ASSIGNED = 'ASSIGNED',
+  BID_SUBMITTED = 'BID_SUBMITTED',
   VIEWED = 'VIEWED',
-  REPLIED = 'REPLIED',
+  MESSAGED = 'MESSAGED',
   INTERVIEW = 'INTERVIEW',
-  HIRED = 'HIRED',
-  REJECTED = 'REJECTED',
-  WITHDRAWN = 'WITHDRAWN',
+  WON = 'WON',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  LOST = 'LOST',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PricingType {
+  HOURLY = 'HOURLY',
+  FIXED = 'FIXED',
+}
+
+export enum MeetingType {
+  INTERVIEW = 'INTERVIEW',
+  CLIENT_CHECKIN = 'CLIENT_CHECKIN',
 }
 
 export enum MeetingStatus {
@@ -16,21 +31,6 @@ export enum MeetingStatus {
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   NO_SHOW = 'NO_SHOW',
-}
-
-export enum DealStatus {
-  NEGOTIATING = 'NEGOTIATING',
-  WON = 'WON',
-  LOST = 'LOST',
-  CANCELLED = 'CANCELLED',
-}
-
-export enum ProjectStatus {
-  NOT_STARTED = 'NOT_STARTED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  ON_HOLD = 'ON_HOLD',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
 }
 
 export enum TaskStatus {
@@ -48,20 +48,6 @@ export enum QAStatus {
   NEEDS_CHANGES = 'NEEDS_CHANGES',
 }
 
-export enum AccountPlatform {
-  UPWORK = 'UPWORK',
-  FREELANCER = 'FREELANCER',
-  TOPTAL = 'TOPTAL',
-  OTHER = 'OTHER',
-}
-
-export enum AccountStatus {
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  SUSPENDED = 'SUSPENDED',
-  CLOSED = 'CLOSED',
-}
-
 export enum ExperimentStatus {
   DRAFT = 'DRAFT',
   RUNNING = 'RUNNING',
@@ -70,21 +56,7 @@ export enum ExperimentStatus {
   CANCELLED = 'CANCELLED',
 }
 
-// ─── Core Entities ────────────────────────────────────────────────────────────
-
-export interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  isActive: boolean;
-  roleId: string;
-  role?: Role;
-  teamId?: string;
-  team?: Team;
-  createdAt: string;
-  updatedAt: string;
-}
+// ─── Identity & Access ───────────────────────────────────────────────────────
 
 export interface Role {
   id: string;
@@ -98,162 +70,121 @@ export interface Team {
   updatedAt: string;
 }
 
-// ─── Freelance / Agent ────────────────────────────────────────────────────────
-
-export interface FreelanceAccount {
+export interface User {
   id: string;
-  platform: AccountPlatform;
-  accountName: string;
-  profileUrl?: string;
-  status: AccountStatus;
-  agents?: Agent[];
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  isActive: boolean;
+  roleId: string;
+  role?: Role;
+  teamId?: string;
+  team?: Team;
+  organizations?: UserOrganization[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Agent {
+// ─── Organizations (Multi-tenant) ────────────────────────────────────────────
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  isActive: boolean;
+  members?: UserOrganization[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserOrganization {
   id: string;
   userId: string;
   user?: User;
-  freelanceAccountId: string;
-  freelanceAccount?: FreelanceAccount;
+  organizationId: string;
+  organization?: Organization;
+  createdAt: string;
+}
+
+// ─── Niches (Org-scoped) ─────────────────────────────────────────────────────
+
+export interface Niche {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
   isActive: boolean;
+  organizationId?: string;
+  organization?: Organization;
   createdAt: string;
   updatedAt: string;
 }
 
-// ─── Client ───────────────────────────────────────────────────────────────────
-
-export interface Client {
-  id: string;
-  marketplaceId?: string;
-  name: string;
-  company?: string;
-  platform?: AccountPlatform;
-  profileUrl?: string;
-  country?: string;
-  totalSpent?: number;
-  hireRate?: number;
-  jobsPosted?: number;
-  proposals?: Proposal[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ─── Scripts ──────────────────────────────────────────────────────────────────
-
-export interface Script {
-  id: string;
-  name: string;
-  category?: string;
-  nicheId?: string;
-  niche?: Niche;
-  createdById: string;
-  createdBy?: User;
-  versions?: ScriptVersion[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ScriptVersion {
-  id: string;
-  scriptId: string;
-  content: string;
-  version: number;
-  createdAt: string;
-}
-
-// ─── Proposals ────────────────────────────────────────────────────────────────
-
-export interface Proposal {
-  id: string;
-  agentId: string;
-  agent?: Agent;
-  clientId: string;
-  client?: Client;
-  scriptVersionId?: string;
-  scriptVersion?: ScriptVersion;
-  nicheId?: string;
-  niche?: Niche;
-  closerId?: string;
-  closer?: User;
-  claimedAt?: string;
-  notes?: string;
-  jobTitle?: string;
-  jobUrl?: string;
-  coverLetter?: string;
-  bidAmount?: number;
-  status: ProposalStatus;
-  sentAt?: string;
-  replyAt?: string;
-  videoProposal?: VideoProposal;
-  meeting?: Meeting;
-  deal?: Deal;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface VideoProposal {
-  id: string;
-  proposalId: string;
-  proposal?: Proposal;
-  videoUrl: string;
-  storageKey: string;
-  duration?: number;
-  fileSize?: number;
-  mimeType?: string;
-  thumbnailUrl?: string;
-  viewCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ─── Meetings ─────────────────────────────────────────────────────────────────
-
-export interface Meeting {
-  id: string;
-  proposalId: string;
-  proposal?: Proposal;
-  closerId?: string;
-  closer?: User;
-  scheduledAt: string;
-  completedAt?: string;
-  status: MeetingStatus;
-  notes?: string;
-  meetingUrl?: string;
-  duration?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ─── Deals ────────────────────────────────────────────────────────────────────
-
-export interface Deal {
-  id: string;
-  proposalId: string;
-  proposal?: Proposal;
-  value: number;
-  currency: string;
-  status: DealStatus;
-  closedAt?: string;
-  notes?: string;
-  project?: Project;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ─── Projects / Milestones ────────────────────────────────────────────────────
+// ─── Projects (Full Pipeline — Core Entity) ──────────────────────────────────
 
 export interface Project {
   id: string;
-  dealId: string;
-  deal?: Deal;
-  name?: string;
+
+  // Job Discovery
+  title: string;
+  jobUrl?: string;
+  jobDescription?: string;
+  pricingType: PricingType;
+  hourlyRateMin?: number;
+  hourlyRateMax?: number;
+  fixedPrice?: number;
+
+  // Pipeline Stage
+  stage: ProjectStage;
+
+  // Script / Bid Materials
+  coverLetter?: string;
+  videoScript?: string;
+  upworkAccount?: string;
+  bidAmount?: number;
+  bidSubmittedAt?: string;
+
+  // Org Scoping
+  organizationId: string;
+  organization?: Organization;
+  nicheId?: string;
+  niche?: Niche;
+  teamId?: string;
+  team?: Team;
+
+  // Assignments
+  discoveredById?: string;
+  discoveredBy?: User;
+  lastEditedById?: string;
+  lastEditedBy?: User;
+  assignedCloserId?: string;
+  assignedCloser?: User;
+  assignedPMId?: string;
+  assignedPM?: User;
+
+  // Won Project Fields
+  clientName?: string;
+  clientNotes?: string;
+  contractValue?: number;
+  contractCurrency?: string;
   startDate?: string;
   endDate?: string;
-  status: ProjectStatus;
+
+  // Relations
   milestones?: Milestone[];
   tasks?: Task[];
+  meetings?: Meeting[];
+  videoProposals?: VideoProposal[];
+  experimentAssignments?: ExperimentAssignment[];
+
+  // Counts (from _count includes)
+  _count?: {
+    tasks?: number;
+    meetings?: number;
+    milestones?: number;
+  };
+
   createdAt: string;
   updatedAt: string;
 }
@@ -265,6 +196,44 @@ export interface Milestone {
   dueDate?: string;
   amount?: number;
   completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Video Proposals (attached to Project) ───────────────────────────────────
+
+export interface VideoProposal {
+  id: string;
+  projectId: string;
+  project?: Project;
+  videoUrl: string;
+  storageKey: string;
+  duration?: number;
+  fileSize?: number;
+  mimeType?: string;
+  thumbnailUrl?: string;
+  viewCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Meetings (attached to Project) ──────────────────────────────────────────
+
+export interface Meeting {
+  id: string;
+  projectId: string;
+  project?: Project;
+  closerId?: string;
+  closer?: User;
+  type: MeetingType;
+  scheduledAt: string;
+  completedAt?: string;
+  status: MeetingStatus;
+  notes?: string;
+  meetingUrl?: string;
+  fathomUrl?: string;
+  loomUrl?: string;
+  driveUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -312,6 +281,7 @@ export interface Event {
   entityId: string;
   actorId?: string;
   actor?: User;
+  organizationId?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
 }
@@ -337,61 +307,19 @@ export interface ExperimentAssignment {
   id: string;
   experimentId: string;
   experiment?: Experiment;
-  agentId?: string;
-  agent?: Agent;
-  proposalId?: string;
-  proposal?: Proposal;
+  projectId?: string;
+  project?: Project;
   variant: string;
+  outcome?: string;
   assignedAt: string;
   createdAt: string;
 }
 
-// ─── Niches ────────────────────────────────────────────────────────────────────
+// ─── Pipeline Counts ──────────────────────────────────────────────────────────
 
-export interface Niche {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CloserNiche {
-  userId: string;
-  nicheId: string;
-  user?: User;
-  niche?: Niche;
-  createdAt: string;
-}
-
-// ─── Analytics ────────────────────────────────────────────────────────────────
-
-export interface DailyAgentMetric {
-  id: string;
-  agentId: string;
-  date: string;
-  proposalsSent: number;
-  proposalsViewed: number;
-  proposalsReplied: number;
-  meetingsBooked: number;
-  dealsClosed: number;
-  totalDealValue: number;
-  videosRecorded: number;
-}
-
-export interface DailyAccountMetric {
-  id: string;
-  accountId: string;
-  date: string;
-  proposalsSent: number;
-  proposalsViewed: number;
-  proposalsReplied: number;
-  meetingsBooked: number;
-  dealsClosed: number;
-  totalDealValue: number;
-  conversionRate: number;
+export interface PipelineCount {
+  stage: ProjectStage;
+  count: number;
 }
 
 // ─── Generic Response ─────────────────────────────────────────────────────────

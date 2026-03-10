@@ -2,13 +2,34 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
 import api from '@/lib/api';
-import type { Meeting, PaginatedResponse } from '@/types';
+import type { Meeting, MeetingType, PaginatedResponse } from '@/types';
 
 interface FindMeetingsParams {
   page?: number;
   limit?: number;
   closerId?: string;
+  projectId?: string;
   status?: string;
+}
+
+interface CreateMeetingInput {
+  projectId: string;
+  closerId?: string;
+  type?: MeetingType;
+  scheduledAt: string;
+  notes?: string;
+  meetingUrl?: string;
+  fathomUrl?: string;
+  loomUrl?: string;
+  driveUrl?: string;
+}
+
+interface CompleteMeetingInput {
+  id: string;
+  notes?: string;
+  fathomUrl?: string;
+  loomUrl?: string;
+  driveUrl?: string;
 }
 
 function extractError(error: unknown, fallback: string): string {
@@ -43,7 +64,7 @@ export function useMeeting(id: string) {
 export function useCreateMeeting() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Partial<Meeting>) => {
+    mutationFn: async (data: CreateMeetingInput) => {
       const res = await api.post('/meetings', data);
       return res.data;
     },
@@ -77,7 +98,7 @@ export function useUpdateMeeting() {
 export function useCompleteMeeting() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; notes?: string; duration?: number }) => {
+    mutationFn: async ({ id, ...data }: CompleteMeetingInput) => {
       const res = await api.post(`/meetings/${id}/complete`, data);
       return res.data;
     },

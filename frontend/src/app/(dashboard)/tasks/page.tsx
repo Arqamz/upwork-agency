@@ -143,7 +143,7 @@ export default function TasksPage() {
                     <SelectContent>
                       {projectsData?.data.map((proj) => (
                         <SelectItem key={proj.id} value={proj.id}>
-                          {proj.name || proj.deal?.proposal?.jobTitle || 'Untitled'}
+                          {proj.title || 'Untitled'}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -313,7 +313,7 @@ export default function TasksPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {task.project?.name || '---'}
+                    {task.project?.title || '---'}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {task.assignee

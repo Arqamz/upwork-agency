@@ -4,22 +4,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  FileText,
-  Video,
-  Calendar,
-  DollarSign,
   FolderKanban,
+  Calendar,
+  Video,
   ListChecks,
-  BarChart3,
-  Users,
-  ScrollText,
-  Layers,
-  UserCircle,
   ClipboardCheck,
+  BarChart3,
+  Building2,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/components/auth-provider';
+import { OrgSwitcher } from '@/components/layout/org-switcher';
 
 interface NavItem {
   label: string;
@@ -33,73 +30,49 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
-    roles: ['admin', 'bidder', 'closer', 'developer', 'qa', 'script_writer', 'leadership'],
-  },
-  {
-    label: 'Proposals',
-    href: '/proposals',
-    icon: FileText,
-    roles: ['admin', 'bidder', 'closer', 'leadership'],
-  },
-  {
-    label: 'Niche Queue',
-    href: '/queue',
-    icon: Layers,
-    roles: ['admin', 'closer'],
-  },
-  {
-    label: 'Clients',
-    href: '/clients',
-    icon: UserCircle,
-    roles: ['admin', 'bidder', 'leadership'],
-  },
-  {
-    label: 'Scripts',
-    href: '/scripts',
-    icon: ScrollText,
-    roles: ['admin', 'bidder', 'script_writer', 'leadership'],
-  },
-  {
-    label: 'Video Proposals',
-    href: '/videos',
-    icon: Video,
-    roles: ['admin', 'closer', 'leadership', 'qa'],
-  },
-  {
-    label: 'Meetings',
-    href: '/meetings',
-    icon: Calendar,
-    roles: ['admin', 'closer', 'leadership'],
-  },
-  {
-    label: 'Deals',
-    href: '/deals',
-    icon: DollarSign,
-    roles: ['admin', 'closer', 'leadership'],
+    roles: ['admin', 'lead', 'bidder', 'closer', 'project_manager', 'operator', 'qa'],
   },
   {
     label: 'Projects',
     href: '/projects',
     icon: FolderKanban,
-    roles: ['admin', 'developer', 'leadership', 'qa'],
+    roles: ['admin', 'lead', 'bidder', 'closer', 'project_manager'],
+  },
+  {
+    label: 'Meetings',
+    href: '/meetings',
+    icon: Calendar,
+    roles: ['admin', 'lead', 'closer'],
+  },
+  {
+    label: 'Video Proposals',
+    href: '/videos',
+    icon: Video,
+    roles: ['admin', 'lead', 'bidder', 'closer'],
   },
   {
     label: 'Tasks',
     href: '/tasks',
     icon: ListChecks,
-    roles: ['admin', 'developer', 'qa'],
+    roles: ['admin', 'project_manager', 'operator', 'qa'],
   },
   {
     label: 'QA Reviews',
     href: '/qa-reviews',
     icon: ClipboardCheck,
-    roles: ['admin', 'qa', 'developer', 'leadership'],
+    roles: ['admin', 'qa', 'operator', 'project_manager'],
   },
   {
     label: 'Analytics',
     href: '/analytics',
     icon: BarChart3,
-    roles: ['admin', 'leadership'],
+    roles: ['admin', 'lead'],
+  },
+  {
+    label: 'Organizations',
+    href: '/organizations',
+    icon: Building2,
+    roles: ['admin'],
   },
   {
     label: 'Users',
@@ -108,6 +81,8 @@ const navItems: NavItem[] = [
     roles: ['admin'],
   },
 ];
+
+export { navItems };
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -145,6 +120,7 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <OrgSwitcher />
     </aside>
   );
 }

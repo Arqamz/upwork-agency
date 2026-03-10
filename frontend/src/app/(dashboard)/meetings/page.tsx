@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMeetings, useCreateMeeting, useCompleteMeeting } from '@/hooks/use-meetings';
-import { useProposals } from '@/hooks/use-proposals';
+import { useProjects } from '@/hooks/use-projects';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, CheckCircle } from 'lucide-react';
+import { MeetingType } from '@/types';
 
 const STATUS_OPTIONS = [
   { label: 'All Statuses', value: 'all' },
@@ -70,33 +71,51 @@ export default function MeetingsPage() {
 
   const createMeeting = useCreateMeeting();
   const completeMeeting = useCompleteMeeting();
-  const { data: proposalsData } = useProposals({ limit: 100 });
+  const { data: projectsData } = useProjects({ limit: 100 });
 
   const [createForm, setCreateForm] = useState({
-    proposalId: '',
+    projectId: '',
+    type: MeetingType.INTERVIEW as string,
     scheduledAt: '',
     meetingUrl: '',
+    fathomUrl: '',
+    loomUrl: '',
+    driveUrl: '',
   });
 
   const [completeForm, setCompleteForm] = useState({
     notes: '',
-    duration: '',
+    fathomUrl: '',
+    loomUrl: '',
+    driveUrl: '',
   });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     await createMeeting.mutateAsync({
-      proposalId: createForm.proposalId,
+      projectId: createForm.projectId,
+      type: createForm.type as MeetingType,
       scheduledAt: createForm.scheduledAt,
       meetingUrl: createForm.meetingUrl || undefined,
-    } as Record<string, unknown>);
-    setCreateForm({ proposalId: '', scheduledAt: '', meetingUrl: '' });
+      fathomUrl: createForm.fathomUrl || undefined,
+      loomUrl: createForm.loomUrl || undefined,
+      driveUrl: createForm.driveUrl || undefined,
+    });
+    setCreateForm({
+      projectId: '',
+      type: MeetingType.INTERVIEW,
+      scheduledAt: '',
+      meetingUrl: '',
+      fathomUrl: '',
+      loomUrl: '',
+      driveUrl: '',
+    });
     setCreateOpen(false);
   };
 
   const openComplete = (id: string) => {
     setCompletingId(id);
-    setCompleteForm({ notes: '', duration: '' });
+    setCompleteForm({ notes: '', fathomUrl: '', loomUrl: '', driveUrl: '' });
     setCompleteOpen(true);
   };
 
@@ -105,7 +124,9 @@ export default function MeetingsPage() {
     await completeMeeting.mutateAsync({
       id: completingId,
       notes: completeForm.notes || undefined,
-      duration: completeForm.duration ? parseInt(completeForm.duration) : undefined,
+      fathomUrl: completeForm.fathomUrl || undefined,
+      loomUrl: completeForm.loomUrl || undefined,
+      driveUrl: completeForm.driveUrl || undefined,
     });
     setCompleteOpen(false);
   };
@@ -124,57 +145,104 @@ export default function MeetingsPage() {
               Schedule Meeting
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <form onSubmit={handleCreate}>
               <DialogHeader>
                 <DialogTitle>Schedule Meeting</DialogTitle>
-                <DialogDescription>Schedule a meeting from a claimed proposal.</DialogDescription>
+                <DialogDescription>Schedule a meeting for a project.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="proposalId">Proposal *</Label>
+                  <Label htmlFor="meetProjectId">Project *</Label>
                   <Select
-                    value={createForm.proposalId}
-                    onValueChange={(v) => setCreateForm((p) => ({ ...p, proposalId: v }))}
+                    value={createForm.projectId}
+                    onValueChange={(v) => setCreateForm((p) => ({ ...p, projectId: v }))}
                   >
-                    <SelectTrigger id="proposalId">
-                      <SelectValue placeholder="Select proposal" />
+                    <SelectTrigger id="meetProjectId">
+                      <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {proposalsData?.data.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.jobTitle || 'Untitled'}
-                          {p.client?.name ? ` — ${p.client.name}` : ''}
+                      {projectsData?.data.map((proj) => (
+                        <SelectItem key={proj.id} value={proj.id}>
+                          {proj.title}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="scheduledAt">Scheduled At *</Label>
-                  <Input
-                    id="scheduledAt"
-                    type="datetime-local"
-                    value={createForm.scheduledAt}
-                    onChange={(e) => setCreateForm((p) => ({ ...p, scheduledAt: e.target.value }))}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="meetType">Type</Label>
+                    <Select
+                      value={createForm.type}
+                      onValueChange={(v) => setCreateForm((p) => ({ ...p, type: v }))}
+                    >
+                      <SelectTrigger id="meetType">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={MeetingType.INTERVIEW}>Interview</SelectItem>
+                        <SelectItem value={MeetingType.CLIENT_CHECKIN}>Client Check-in</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="meetScheduledAt">Scheduled At *</Label>
+                    <Input
+                      id="meetScheduledAt"
+                      type="datetime-local"
+                      value={createForm.scheduledAt}
+                      onChange={(e) =>
+                        setCreateForm((p) => ({ ...p, scheduledAt: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="meetingUrl">Meeting URL</Label>
+                  <Label htmlFor="meetUrl">Meeting URL</Label>
                   <Input
-                    id="meetingUrl"
+                    id="meetUrl"
                     value={createForm.meetingUrl}
                     onChange={(e) => setCreateForm((p) => ({ ...p, meetingUrl: e.target.value }))}
                     placeholder="https://meet.google.com/..."
                   />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="meetFathom">Fathom URL</Label>
+                    <Input
+                      id="meetFathom"
+                      value={createForm.fathomUrl}
+                      onChange={(e) => setCreateForm((p) => ({ ...p, fathomUrl: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="meetLoom">Loom URL</Label>
+                    <Input
+                      id="meetLoom"
+                      value={createForm.loomUrl}
+                      onChange={(e) => setCreateForm((p) => ({ ...p, loomUrl: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="meetDrive">Drive URL</Label>
+                    <Input
+                      id="meetDrive"
+                      value={createForm.driveUrl}
+                      onChange={(e) => setCreateForm((p) => ({ ...p, driveUrl: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button
                   type="submit"
                   disabled={
-                    createMeeting.isPending || !createForm.proposalId || !createForm.scheduledAt
+                    createMeeting.isPending || !createForm.projectId || !createForm.scheduledAt
                   }
                 >
                   {createMeeting.isPending ? 'Scheduling...' : 'Schedule'}
@@ -185,6 +253,7 @@ export default function MeetingsPage() {
         </Dialog>
       </div>
 
+      {/* Complete Meeting Dialog */}
       <Dialog open={completeOpen} onOpenChange={setCompleteOpen}>
         <DialogContent>
           <form onSubmit={handleComplete}>
@@ -194,16 +263,6 @@ export default function MeetingsPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="completeDuration">Duration (minutes)</Label>
-                <Input
-                  id="completeDuration"
-                  type="number"
-                  min="1"
-                  value={completeForm.duration}
-                  onChange={(e) => setCompleteForm((p) => ({ ...p, duration: e.target.value }))}
-                />
-              </div>
-              <div className="grid gap-2">
                 <Label htmlFor="completeNotes">Notes</Label>
                 <Textarea
                   id="completeNotes"
@@ -212,6 +271,35 @@ export default function MeetingsPage() {
                   placeholder="Meeting outcome, next steps..."
                   rows={4}
                 />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="compFathom">Fathom URL</Label>
+                  <Input
+                    id="compFathom"
+                    value={completeForm.fathomUrl}
+                    onChange={(e) => setCompleteForm((p) => ({ ...p, fathomUrl: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="compLoom">Loom URL</Label>
+                  <Input
+                    id="compLoom"
+                    value={completeForm.loomUrl}
+                    onChange={(e) => setCompleteForm((p) => ({ ...p, loomUrl: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="compDrive">Drive URL</Label>
+                  <Input
+                    id="compDrive"
+                    value={completeForm.driveUrl}
+                    onChange={(e) => setCompleteForm((p) => ({ ...p, driveUrl: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -255,12 +343,12 @@ export default function MeetingsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Proposal</TableHead>
-                <TableHead>Client</TableHead>
+                <TableHead>Project</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Scheduled</TableHead>
-                <TableHead>Duration</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Meeting Link</TableHead>
+                <TableHead>Recordings</TableHead>
                 <TableHead className="w-[100px]" />
               </TableRow>
             </TableHeader>
@@ -286,17 +374,14 @@ export default function MeetingsPage() {
 
               {data?.data.map((meeting) => (
                 <TableRow key={meeting.id}>
-                  <TableCell className="font-medium">
-                    {meeting.proposal?.jobTitle || 'Untitled'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {meeting.proposal?.client?.name || '---'}
+                  <TableCell className="font-medium">{meeting.project?.title || '---'}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {meeting.type === 'CLIENT_CHECKIN' ? 'Check-in' : 'Interview'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(meeting.scheduledAt).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {meeting.duration ? `${meeting.duration} min` : '---'}
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusVariant[meeting.status] || 'secondary'}>
@@ -316,6 +401,43 @@ export default function MeetingsPage() {
                     ) : (
                       <span className="text-muted-foreground">---</span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {meeting.fathomUrl && (
+                        <a
+                          href={meeting.fathomUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Fathom
+                        </a>
+                      )}
+                      {meeting.loomUrl && (
+                        <a
+                          href={meeting.loomUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Loom
+                        </a>
+                      )}
+                      {meeting.driveUrl && (
+                        <a
+                          href={meeting.driveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Drive
+                        </a>
+                      )}
+                      {!meeting.fathomUrl && !meeting.loomUrl && !meeting.driveUrl && (
+                        <span className="text-muted-foreground text-xs">---</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {meeting.status === 'SCHEDULED' && (

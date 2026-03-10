@@ -8,7 +8,7 @@ import {
   useGetUploadUrl,
   useIncrementViewCount,
 } from '@/hooks/use-videos';
-import { useProposals } from '@/hooks/use-proposals';
+import { useProjects } from '@/hooks/use-projects';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +49,7 @@ export default function VideosPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({
-    proposalId: '',
+    projectId: '',
     videoUrl: '',
     storageKey: '',
     duration: '',
@@ -58,12 +58,12 @@ export default function VideosPage() {
     thumbnailUrl: '',
   });
 
-  const { data: proposalsData } = useProposals({ page: 1, limit: 100 });
-  const proposals = proposalsData?.data ?? [];
+  const { data: projectsData } = useProjects({ limit: 100 });
+  const projects = projectsData?.data ?? [];
 
   function resetForm() {
     setForm({
-      proposalId: '',
+      projectId: '',
       videoUrl: '',
       storageKey: '',
       duration: '',
@@ -74,10 +74,10 @@ export default function VideosPage() {
   }
 
   function handleCreate() {
-    if (!form.proposalId || !form.videoUrl || !form.storageKey) return;
+    if (!form.projectId || !form.videoUrl || !form.storageKey) return;
     createVideo.mutate(
       {
-        proposalId: form.proposalId,
+        projectId: form.projectId,
         videoUrl: form.videoUrl,
         storageKey: form.storageKey,
         duration: form.duration ? parseInt(form.duration, 10) : undefined,
@@ -135,7 +135,7 @@ export default function VideosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Video Proposals</h1>
-          <p className="text-muted-foreground">Manage video proposals for clients</p>
+          <p className="text-muted-foreground">Manage video proposals for projects</p>
         </div>
 
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -151,18 +151,18 @@ export default function VideosPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Proposal</Label>
+                <Label>Project</Label>
                 <Select
-                  value={form.proposalId}
-                  onValueChange={(v) => setForm({ ...form, proposalId: v })}
+                  value={form.projectId}
+                  onValueChange={(v) => setForm({ ...form, projectId: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a proposal" />
+                    <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
-                    {proposals.map((p) => (
+                    {projects.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.jobTitle || p.client?.name || p.id.slice(0, 8)}
+                        {p.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -242,7 +242,7 @@ export default function VideosPage() {
                 className="w-full"
                 onClick={handleCreate}
                 disabled={
-                  createVideo.isPending || !form.proposalId || !form.videoUrl || !form.storageKey
+                  createVideo.isPending || !form.projectId || !form.videoUrl || !form.storageKey
                 }
               >
                 {createVideo.isPending ? 'Creating...' : 'Create Video Proposal'}
@@ -288,7 +288,7 @@ export default function VideosPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Proposal</TableHead>
+                  <TableHead>Project</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>File Size</TableHead>
                   <TableHead>Type</TableHead>
@@ -304,7 +304,7 @@ export default function VideosPage() {
                       <div className="flex items-center gap-2">
                         <Video className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {video.proposal?.jobTitle || video.proposalId.slice(0, 8)}
+                          {video.project?.title || video.projectId.slice(0, 8)}
                         </span>
                       </div>
                     </TableCell>

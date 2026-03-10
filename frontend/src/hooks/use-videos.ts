@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
 import api from '@/lib/api';
-import { VideoProposal, PaginatedResponse } from '@/types';
+import type { VideoProposal, PaginatedResponse } from '@/types';
 
 interface CreateVideoProposalInput {
-  proposalId: string;
+  projectId: string;
   videoUrl: string;
   storageKey: string;
   duration?: number;
@@ -19,11 +19,13 @@ function extractError(error: unknown, fallback: string): string {
   return Array.isArray(msg) ? msg[0] : msg || fallback;
 }
 
-export function useVideoProposals(page = 1, limit = 20) {
+export function useVideoProposals(page = 1, limit = 20, projectId?: string) {
   return useQuery<PaginatedResponse<VideoProposal>>({
-    queryKey: ['videos', page, limit],
+    queryKey: ['videos', page, limit, projectId],
     queryFn: async () => {
-      const res = await api.get('/videos', { params: { page, limit } });
+      const params: Record<string, string | number> = { page, limit };
+      if (projectId) params.projectId = projectId;
+      const res = await api.get('/videos', { params });
       return res.data;
     },
   });
@@ -40,14 +42,14 @@ export function useVideoProposal(id: string) {
   });
 }
 
-export function useVideoByProposal(proposalId: string) {
+export function useVideoByProject(projectId: string) {
   return useQuery<VideoProposal>({
-    queryKey: ['videos', 'proposal', proposalId],
+    queryKey: ['videos', 'project', projectId],
     queryFn: async () => {
-      const res = await api.get(`/videos/proposal/${proposalId}`);
+      const res = await api.get(`/videos/project/${projectId}`);
       return res.data;
     },
-    enabled: !!proposalId,
+    enabled: !!projectId,
   });
 }
 

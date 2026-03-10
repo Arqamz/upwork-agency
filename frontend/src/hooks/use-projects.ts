@@ -2,12 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
 import api from '@/lib/api';
-import type { Project, PaginatedResponse } from '@/types';
+import type { Project, PaginatedResponse, PipelineCount } from '@/types';
 
 interface FindProjectsParams {
   page?: number;
   limit?: number;
-  status?: string;
+  stage?: string;
+  organizationId?: string;
+  assignedCloserId?: string;
+  assignedPMId?: string;
+  discoveredById?: string;
+  nicheId?: string;
+  teamId?: string;
 }
 
 function extractError(error: unknown, fallback: string): string {
@@ -39,10 +45,34 @@ export function useProject(id: string) {
   });
 }
 
+export function usePipelineCounts(organizationId?: string) {
+  return useQuery<PipelineCount[]>({
+    queryKey: ['projects', 'pipeline', organizationId],
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (organizationId) params.organizationId = organizationId;
+      const res = await api.get('/projects/pipeline', { params });
+      return res.data;
+    },
+  });
+}
+
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Partial<Project>) => {
+    mutationFn: async (data: {
+      title: string;
+      pricingType: string;
+      organizationId: string;
+      jobUrl?: string;
+      jobDescription?: string;
+      hourlyRateMin?: number;
+      hourlyRateMax?: number;
+      fixedPrice?: number;
+      nicheId?: string;
+      teamId?: string;
+      discoveredById?: string;
+    }) => {
       const res = await api.post('/projects', data);
       return res.data;
     },
@@ -69,6 +99,58 @@ export function useUpdateProject() {
     },
     onError: (error: unknown) => {
       toast.error(extractError(error, 'Failed to update project'));
+    },
+  });
+}
+
+export function useAdvanceStage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.post(`/projects/${id}/advance`);
+      return res.data;
+    },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['projects'] });
+      const snapshots = qc.getQueriesData<PaginatedResponse<Project>>({
+        queryKey: ['projects'],
+      });
+      return { snapshots };
+    },
+    onError: (error: unknown, _id, ctx) => {
+      if (ctx?.snapshots) {
+        ctx.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      }
+      toast.error(extractError(error, 'Failed to advance stage'));
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Stage advanced');
+    },
+  });
+}
+
+export function useAssignProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...data
+    }: {
+      id: string;
+      assignedCloserId?: string;
+      assignedPMId?: string;
+      lastEditedById?: string;
+    }) => {
+      const res = await api.patch(`/projects/${id}/assign`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project assignment updated');
+    },
+    onError: (error: unknown) => {
+      toast.error(extractError(error, 'Failed to assign project'));
     },
   });
 }

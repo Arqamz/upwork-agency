@@ -9,6 +9,9 @@ import {
   setRefreshToken,
   isAuthenticated,
   getUser,
+  getActiveOrg,
+  setActiveOrg,
+  removeActiveOrg,
   type TokenUser,
 } from '@/lib/auth';
 import api from '@/lib/api';
@@ -19,9 +22,11 @@ interface AuthContextValue {
   fullUser: User | null;
   isLoggedIn: boolean;
   isLoading: boolean;
+  activeOrganizationId: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<void>;
+  switchOrg: (organizationId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -32,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [fullUser, setFullUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeOrganizationId, setActiveOrganizationId] = useState<string | null>(null);
 
   const fetchMe = useCallback(async () => {
     try {
@@ -47,6 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(authenticated);
     const tokenUser = authenticated ? getUser() : null;
     setUser(tokenUser);
+
+    // Restore active org from localStorage or token
+    const storedOrg = getActiveOrg();
+    if (storedOrg) {
+      setActiveOrganizationId(storedOrg);
+    } else if (tokenUser?.organizationId) {
+      setActiveOrganizationId(tokenUser.organizationId);
+      setActiveOrg(tokenUser.organizationId);
+    }
+
     if (authenticated) {
       fetchMe().finally(() => setIsLoading(false));
     } else {
@@ -64,6 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(currentUser);
       setFullUser(apiUser);
       setIsLoggedIn(true);
+
+      // Set active org from token or first membership
+      if (currentUser?.organizationId) {
+        setActiveOrganizationId(currentUser.organizationId);
+        setActiveOrg(currentUser.organizationId);
+      }
+
       router.push('/');
     },
     [router],
@@ -79,15 +102,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     removeToken();
+    removeActiveOrg();
     setUser(null);
     setFullUser(null);
     setIsLoggedIn(false);
+    setActiveOrganizationId(null);
     router.push('/login');
   }, [router]);
 
+  const switchOrg = useCallback(async (organizationId: string) => {
+    const { data } = await api.post('/auth/switch-org', { organizationId });
+    setToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
+    const currentUser = getUser();
+    setUser(currentUser);
+    setActiveOrganizationId(organizationId);
+    setActiveOrg(organizationId);
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, fullUser, isLoggedIn, isLoading, login, logout, refreshMe: fetchMe }}
+      value={{
+        user,
+        fullUser,
+        isLoggedIn,
+        isLoading,
+        activeOrganizationId,
+        login,
+        logout,
+        refreshMe: fetchMe,
+        switchOrg,
+      }}
     >
       {children}
     </AuthContext.Provider>

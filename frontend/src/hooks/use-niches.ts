@@ -9,13 +9,14 @@ function extractError(error: unknown, fallback: string): string {
   return Array.isArray(msg) ? msg[0] : msg || fallback;
 }
 
-export function useNiches(includeInactive = false) {
+export function useNiches(organizationId?: string, includeInactive = false) {
   return useQuery<Niche[]>({
-    queryKey: ['niches', { includeInactive }],
+    queryKey: ['niches', { organizationId, includeInactive }],
     queryFn: async () => {
-      const res = await api.get('/niches', {
-        params: includeInactive ? { includeInactive: true } : {},
-      });
+      const params: Record<string, string | boolean> = {};
+      if (organizationId) params.organizationId = organizationId;
+      if (includeInactive) params.includeInactive = true;
+      const res = await api.get('/niches', { params });
       return res.data;
     },
   });
@@ -32,21 +33,15 @@ export function useNiche(id: string) {
   });
 }
 
-export function useNicheClosers(nicheId: string) {
-  return useQuery({
-    queryKey: ['niches', nicheId, 'closers'],
-    queryFn: async () => {
-      const res = await api.get(`/niches/${nicheId}/closers`);
-      return res.data;
-    },
-    enabled: !!nicheId,
-  });
-}
-
 export function useCreateNiche() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { name: string; slug: string; description?: string }) => {
+    mutationFn: async (data: {
+      name: string;
+      slug: string;
+      description?: string;
+      organizationId?: string;
+    }) => {
       const res = await api.post('/niches', data);
       return res.data;
     },
@@ -73,40 +68,6 @@ export function useUpdateNiche() {
     },
     onError: (error: unknown) => {
       toast.error(extractError(error, 'Failed to update niche'));
-    },
-  });
-}
-
-export function useAssignCloserToNiche() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ nicheId, userId }: { nicheId: string; userId: string }) => {
-      const res = await api.post(`/niches/${nicheId}/closers`, { userId });
-      return res.data;
-    },
-    onSuccess: (_, { nicheId }) => {
-      qc.invalidateQueries({ queryKey: ['niches', nicheId, 'closers'] });
-      toast.success('Closer assigned to niche');
-    },
-    onError: (error: unknown) => {
-      toast.error(extractError(error, 'Failed to assign closer'));
-    },
-  });
-}
-
-export function useRemoveCloserFromNiche() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ nicheId, userId }: { nicheId: string; userId: string }) => {
-      const res = await api.delete(`/niches/${nicheId}/closers/${userId}`);
-      return res.data;
-    },
-    onSuccess: (_, { nicheId }) => {
-      qc.invalidateQueries({ queryKey: ['niches', nicheId, 'closers'] });
-      toast.success('Closer removed from niche');
-    },
-    onError: (error: unknown) => {
-      toast.error(extractError(error, 'Failed to remove closer'));
     },
   });
 }
