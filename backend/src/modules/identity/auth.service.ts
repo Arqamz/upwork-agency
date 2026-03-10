@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -37,12 +42,22 @@ export class AuthService {
       throw new UnauthorizedException('Account is deactivated');
     }
 
-    const tokens = await this.generateTokens(user);
+    // Pick the user's first org membership as default org context
+    const firstMembership = await this.prisma.userOrganization.findFirst({
+      where: { userId: user.id },
+      include: { organization: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const tokens = await this.generateTokens(user, firstMembership?.organizationId);
 
     const { passwordHash, ...userWithoutPassword } = user;
     return {
       ...tokens,
-      user: userWithoutPassword,
+      user: {
+        ...userWithoutPassword,
+        activeOrganizationId: firstMembership?.organizationId ?? null,
+      },
     };
   }
 
@@ -81,7 +96,18 @@ export class AuthService {
   async getMe(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { role: true, team: true },
+      include: {
+        role: true,
+        team: true,
+        organizations: {
+          include: {
+            organization: {
+              select: { id: true, name: true, slug: true, isActive: true },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
     });
 
     if (!user) {
@@ -90,6 +116,44 @@ export class AuthService {
 
     const { passwordHash, ...userWithoutPassword } = user;
     return userWithoutPassword;
+  }
+
+  async switchOrganization(userId: string, organizationId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true, team: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Admins can switch to any org; others must be a member
+    if (user.role.name !== 'admin') {
+      const membership = await this.prisma.userOrganization.findUnique({
+        where: { userId_organizationId: { userId, organizationId } },
+      });
+
+      if (!membership) {
+        throw new ForbiddenException('You are not a member of this organization');
+      }
+    }
+
+    const org = await this.prisma.organization.findUnique({ where: { id: organizationId } });
+    if (!org) {
+      throw new NotFoundException(`Organization "${organizationId}" not found`);
+    }
+    if (!org.isActive) {
+      throw new ForbiddenException('This organization is inactive');
+    }
+
+    const tokens = await this.generateTokens(user, organizationId);
+
+    const { passwordHash, ...userWithoutPassword } = user;
+    return {
+      ...tokens,
+      user: { ...userWithoutPassword, activeOrganizationId: organizationId },
+    };
   }
 
   async logout(userId: string) {
@@ -140,12 +204,13 @@ export class AuthService {
     return result;
   }
 
-  async generateTokens(user: UserWithRole) {
+  async generateTokens(user: UserWithRole, organizationId?: string) {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role.name,
       teamId: user.teamId ?? undefined,
+      organizationId,
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {

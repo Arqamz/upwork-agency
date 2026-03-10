@@ -1,7 +1,13 @@
 import { Controller, Post, Get, Patch, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, RefreshTokenDto, ChangePasswordDto, UpdateProfileDto } from './dto';
+import {
+  LoginDto,
+  RefreshTokenDto,
+  ChangePasswordDto,
+  UpdateProfileDto,
+  SwitchOrgDto,
+} from './dto';
 import { Public, CurrentUser } from '@/common/decorators';
 import { JwtPayload } from '@/common/interfaces';
 
@@ -28,9 +34,17 @@ export class AuthController {
 
   @Get('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current authenticated user' })
+  @ApiOperation({ summary: 'Get current authenticated user with org memberships' })
   async me(@CurrentUser() payload: JwtPayload) {
     return this.authService.getMe(payload.sub);
+  }
+
+  @Post('switch-org')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Switch active organization — returns new tokens scoped to that org' })
+  async switchOrg(@CurrentUser() payload: JwtPayload, @Body() dto: SwitchOrgDto) {
+    return this.authService.switchOrganization(payload.sub, dto.organizationId);
   }
 
   @Patch('profile')
