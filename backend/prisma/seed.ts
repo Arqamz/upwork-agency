@@ -361,6 +361,9 @@ async function seedUserOrganizations(
     // Admin and lead also in paralegal
     { userId: users[IDS.USER_ADMIN].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
     { userId: users[IDS.USER_LEAD].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
+    { userId: users[IDS.USER_BIDDER].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
+    { userId: users[IDS.USER_CLOSER].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
+    { userId: users[IDS.USER_PM].id, organizationId: orgs[IDS.ORG_PARALEGAL].id },
   ];
 
   for (const a of assignments) {

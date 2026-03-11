@@ -545,7 +545,7 @@ export default function ProjectsPage() {
 
             <DragOverlay>
               {activeProject ? (
-                <div className="w-[280px] rounded-xl ring-2 ring-primary/40 shadow-xl shadow-primary/15">
+                <div className="w-[280px] rounded-xl ring-2 ring-primary/40 shadow-xl shadow-glow-md">
                   <ProjectCard project={activeProject} onClick={() => {}} />
                 </div>
               ) : null}

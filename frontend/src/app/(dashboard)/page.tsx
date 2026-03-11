@@ -36,19 +36,19 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  [ProjectStage.DISCOVERED]: 'bg-slate-500/15 text-slate-400 border border-slate-500/20',
-  [ProjectStage.SCRIPTED]: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',
-  [ProjectStage.UNDER_REVIEW]: 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20',
-  [ProjectStage.ASSIGNED]: 'bg-purple-500/15 text-purple-400 border border-purple-500/20',
-  [ProjectStage.BID_SUBMITTED]: 'bg-orange-500/15 text-orange-400 border border-orange-500/20',
-  [ProjectStage.VIEWED]: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20',
-  [ProjectStage.MESSAGED]: 'bg-teal-500/15 text-teal-400 border border-teal-500/20',
-  [ProjectStage.INTERVIEW]: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20',
-  [ProjectStage.WON]: 'bg-green-500/15 text-green-400 border border-green-500/20',
-  [ProjectStage.IN_PROGRESS]: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
-  [ProjectStage.COMPLETED]: 'bg-green-700/15 text-green-300 border border-green-700/20',
-  [ProjectStage.LOST]: 'bg-red-500/15 text-red-400 border border-red-500/20',
-  [ProjectStage.CANCELLED]: 'bg-gray-500/15 text-gray-500 border border-gray-500/20',
+  [ProjectStage.DISCOVERED]: 'bg-slate-500/20 text-slate-400 border border-slate-500/25',
+  [ProjectStage.SCRIPTED]: 'bg-blue-500/20 text-blue-400 border border-blue-500/25',
+  [ProjectStage.UNDER_REVIEW]: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/25',
+  [ProjectStage.ASSIGNED]: 'bg-purple-500/20 text-purple-400 border border-purple-500/25',
+  [ProjectStage.BID_SUBMITTED]: 'bg-orange-500/20 text-orange-400 border border-orange-500/25',
+  [ProjectStage.VIEWED]: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25',
+  [ProjectStage.MESSAGED]: 'bg-teal-500/20 text-teal-400 border border-teal-500/25',
+  [ProjectStage.INTERVIEW]: 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/25',
+  [ProjectStage.WON]: 'bg-green-500/20 text-green-400 border border-green-500/25',
+  [ProjectStage.IN_PROGRESS]: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/25',
+  [ProjectStage.COMPLETED]: 'bg-green-700/20 text-green-300 border border-green-700/25',
+  [ProjectStage.LOST]: 'bg-red-500/20 text-red-400 border border-red-500/25',
+  [ProjectStage.CANCELLED]: 'bg-gray-500/20 text-gray-500 border border-gray-500/25',
 };
 
 const STAT_CARDS = [
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         {STAT_CARDS.map(({ href, label, icon: Icon, key, prefix }, i) => (
           <Link key={key} href={href}>
             <Card
-              className="cursor-pointer transition-shadow hover:shadow-md hover:shadow-primary/5"
+              className="cursor-pointer transition-all duration-200 hover:shadow-glow-sm hover:-translate-y-0.5"
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -170,11 +170,11 @@ export default function DashboardPage() {
             <CardTitle className="text-lg">Recent Projects</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {recentProjects.data.map((project) => (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between border-b py-2 last:border-0"
+                  className="flex items-center justify-between rounded-lg border border-border/50 bg-card/60 px-3 py-2.5 backdrop-blur-sm transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{project.title}</p>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             {(role === 'bidder' || role === 'admin') && (
               <Link
                 href="/projects"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:brightness-110"
+                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-amber px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:shadow-glow-sm hover:brightness-110"
               >
                 <Plus className="h-4 w-4" />
                 Add New Job

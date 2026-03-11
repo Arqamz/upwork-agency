@@ -85,10 +85,10 @@ export function Sidebar() {
   const visibleItems = navItems.filter((item) => item.roles.includes(userRole));
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-border/50 bg-card/60 backdrop-blur-xl">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r glass">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-border/50 px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[hsl(330,75%,62%)] text-white font-bold text-sm shadow-sm">
+      <div className="flex h-16 items-center gap-3 border-b border-border/40 px-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-amber text-white font-bold text-sm shadow-glow-sm">
           A
         </div>
         <div className="flex flex-col">
@@ -111,8 +111,8 @@ export function Sidebar() {
               className={cn(
                 'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-gradient-to-r from-primary/15 to-[hsl(330,75%,62%)/8%] text-primary border border-primary/20 shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                  ? 'bg-gradient-to-r from-primary/15 to-amber/8 text-primary border border-primary/25 shadow-sm shadow-primary/5'
+                  : 'text-muted-foreground hover:bg-accent/80 hover:text-foreground',
               )}
             >
               <item.icon

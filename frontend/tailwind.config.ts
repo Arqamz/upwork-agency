@@ -52,6 +52,9 @@ const config: Config = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
+        amber: {
+          DEFAULT: 'hsl(var(--amber))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -59,9 +62,15 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, hsl(var(--primary)), hsl(330 75% 62%))',
+        'gradient-primary': 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--amber)))',
         'gradient-subtle':
-          'linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(330 75% 62% / 0.04))',
+          'linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--amber) / 0.06))',
+      },
+      boxShadow: {
+        'glow-sm': '0 0 12px hsl(var(--primary) / 0.15), 0 0 4px hsl(var(--primary) / 0.1)',
+        'glow-md': '0 0 20px hsl(var(--primary) / 0.2), 0 0 8px hsl(var(--primary) / 0.12)',
+        'glow-lg': '0 0 32px hsl(var(--primary) / 0.25), 0 0 12px hsl(var(--primary) / 0.15)',
+        'glow-amber': '0 0 16px hsl(var(--amber) / 0.15), 0 0 4px hsl(var(--amber) / 0.1)',
       },
       keyframes: {
         'accordion-down': {

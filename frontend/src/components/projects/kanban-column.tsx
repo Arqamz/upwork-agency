@@ -34,19 +34,19 @@ export function KanbanColumn({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.06, ease: 'easeOut' }}
       className={cn(
-        'flex h-full min-w-[280px] max-w-[320px] flex-1 flex-col rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-200',
+        'flex h-full min-w-[280px] max-w-[320px] flex-1 flex-col rounded-xl border border-border/60 bg-card/40 backdrop-blur-md transition-all duration-200',
         isOver &&
-          'border-primary/40 bg-primary/5 shadow-[0_0_20px_hsl(var(--primary)/0.12)] ring-1 ring-primary/20',
+          'border-amber/40 bg-amber/5 shadow-[0_0_20px_hsl(var(--amber)/0.15)] ring-1 ring-amber/25',
       )}
     >
       {/* Column Header */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-border/50 px-3 py-2.5">
+      <div className="flex shrink-0 items-center gap-2 border-b border-border/60 px-3 py-2.5">
         <div className={cn('h-2.5 w-2.5 rounded-full', color)} />
         <h3 className="text-sm font-semibold">{title}</h3>
         <span
           className={cn(
             'ml-auto rounded-full px-2 py-0.5 text-xs font-medium transition-colors',
-            count > 0 ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
+            count > 0 ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
           )}
         >
           {count}

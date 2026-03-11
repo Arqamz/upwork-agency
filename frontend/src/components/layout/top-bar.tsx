@@ -35,7 +35,7 @@ export function TopBar() {
 
   return (
     <>
-      <header className="flex h-16 items-center gap-3 border-b border-border/50 bg-card/60 backdrop-blur-xl px-4 lg:px-6">
+      <header className="flex h-16 items-center gap-3 border-b glass px-4 lg:px-6">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="lg:hidden">
@@ -78,35 +78,31 @@ export function TopBar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="relative h-9 w-9 rounded-full p-0 ring-2 ring-border/50 hover:ring-primary/40 transition-all duration-200"
+              className="relative h-9 w-9 rounded-full p-0 ring-2 ring-border/60 hover:ring-primary/50 transition-all duration-200"
             >
               <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-[hsl(330,75%,62%)/20] text-primary text-xs font-semibold">
+                <AvatarFallback className="bg-gradient-to-br from-primary/25 to-amber/20 text-primary text-xs font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-56 bg-card/90 backdrop-blur-xl border-border/60"
-            align="end"
-            forceMount
-          >
+          <DropdownMenuContent className="w-56 glass" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{displayName}</p>
                 <p className="text-xs leading-none text-muted-foreground capitalize">{roleName}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuSeparator className="bg-border/40" />
             <DropdownMenuItem
               onClick={() => setProfileOpen(true)}
-              className="cursor-pointer hover:bg-accent/60"
+              className="cursor-pointer hover:bg-accent/80"
             >
               <UserIcon className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuSeparator className="bg-border/40" />
             <DropdownMenuItem
               onClick={() => logout()}
               className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive focus:text-destructive"

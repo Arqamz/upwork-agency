@@ -27,7 +27,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<void>;
-  switchOrg: (organizationId: string) => Promise<void>;
+  switchOrg: (organizationId: string, orgName?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -116,12 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   const switchOrg = useCallback(
-    async (organizationId: string) => {
+    async (organizationId: string, orgName?: string) => {
       if (organizationId === activeOrganizationId) return;
 
-      // Resolve org name from fullUser memberships for overlay
-      const membership = fullUser?.organizations?.find((m) => m.organizationId === organizationId);
-      const name = membership?.organization?.name ?? 'Organization';
+      // Use the name passed from the caller (org-switcher already knows it)
+      const name = orgName ?? 'Organization';
 
       // Show overlay
       setSwitchingOrgName(name);
@@ -140,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => setSwitchingOrg(false), 900);
       }
     },
-    [activeOrganizationId, fullUser],
+    [activeOrganizationId],
   );
 
   return (

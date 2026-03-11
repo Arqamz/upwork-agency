@@ -52,7 +52,12 @@ export function OrgSwitcher() {
               return (
                 <DropdownMenuItem
                   key={membership.organizationId}
-                  onClick={() => switchOrg(membership.organizationId)}
+                  onClick={() =>
+                    switchOrg(
+                      membership.organizationId,
+                      membership.organization?.name ?? membership.organizationId.slice(0, 8),
+                    )
+                  }
                   className={cn(
                     'cursor-pointer',
                     isActive && 'text-primary font-medium bg-primary/5',

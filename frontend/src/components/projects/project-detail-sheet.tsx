@@ -316,7 +316,7 @@ function StageActionBanner({
   if (!primaryAction && !hint && secondaryActions.length === 0) return null;
 
   return (
-    <div className="shrink-0 space-y-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-[hsl(330,75%,62%,0.05)] px-6 py-4">
+    <div className="shrink-0 space-y-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-amber/5 px-6 py-4">
       {/* Rejected banner */}
       {stage === ProjectStage.UNDER_REVIEW && project.reviewStatus === ReviewStatus.REJECTED && (
         <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3">

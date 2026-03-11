@@ -40,15 +40,15 @@ function getReviewBadge(project: Project) {
   const variants: Record<string, { label: string; className: string }> = {
     [ReviewStatus.PENDING]: {
       label: 'Pending Review',
-      className: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/25',
+      className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     },
     [ReviewStatus.APPROVED]: {
       label: 'Approved',
-      className: 'bg-green-500/15 text-green-400 border-green-500/25',
+      className: 'bg-green-500/20 text-green-400 border-green-500/30',
     },
     [ReviewStatus.REJECTED]: {
       label: 'Rejected',
-      className: 'bg-red-500/15 text-red-400 border-red-500/25',
+      className: 'bg-red-500/20 text-red-400 border-red-500/30',
     },
   };
   const v = variants[project.reviewStatus];
@@ -92,9 +92,9 @@ export function ProjectCard({ project, onClick, index = 0 }: ProjectCardProps) {
       transition={{ duration: 0.15, delay: index * 0.03 }}
       onClick={onClick}
       className={cn(
-        'cursor-pointer rounded-lg border border-border/50 bg-card/70 p-3 shadow-sm backdrop-blur-sm',
+        'cursor-pointer rounded-lg border border-border/60 bg-card/80 p-3 shadow-sm backdrop-blur-sm',
         'transition-[border-color,box-shadow] duration-200',
-        'hover:border-primary/30 hover:shadow-md hover:shadow-primary/5',
+        'hover:border-primary/30 hover:shadow-glow-sm',
         isDragging && 'ring-2 ring-primary/30 shadow-lg shadow-primary/10',
       )}
     >
@@ -106,7 +106,7 @@ export function ProjectCard({ project, onClick, index = 0 }: ProjectCardProps) {
         {subStageBadge && (
           <Badge
             variant="outline"
-            className="border-blue-500/25 bg-blue-500/15 text-[10px] text-blue-400"
+            className="border-blue-500/30 bg-blue-500/20 text-[10px] text-blue-400"
           >
             {subStageBadge}
           </Badge>

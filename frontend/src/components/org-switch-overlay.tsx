@@ -32,7 +32,7 @@ export function OrgSwitchOverlay({ visible, orgName }: OrgSwitchOverlayProps) {
               transition={{ duration: 0.6, ease: 'easeOut' }}
             />
             <motion.div
-              className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-[hsl(330,75%,62%)]/20 blur-3xl"
+              className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-amber/20 blur-3xl"
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.6, opacity: 0 }}
@@ -61,7 +61,7 @@ export function OrgSwitchOverlay({ visible, orgName }: OrgSwitchOverlayProps) {
               <p
                 className="text-3xl font-bold"
                 style={{
-                  background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(330 75% 65%))',
+                  background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--amber)))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
