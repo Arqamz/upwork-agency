@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   FolderKanban,
   Calendar,
-  Video,
   ListChecks,
   ClipboardCheck,
   BarChart3,
@@ -43,12 +42,6 @@ const navItems: NavItem[] = [
     href: '/meetings',
     icon: Calendar,
     roles: ['admin', 'lead', 'closer'],
-  },
-  {
-    label: 'Video Proposals',
-    href: '/videos',
-    icon: Video,
-    roles: ['admin', 'lead', 'bidder', 'closer'],
   },
   {
     label: 'Tasks',

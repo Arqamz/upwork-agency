@@ -48,6 +48,12 @@ export enum QAStatus {
   NEEDS_CHANGES = 'NEEDS_CHANGES',
 }
 
+export enum ReviewStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 export enum ExperimentStatus {
   DRAFT = 'DRAFT',
   RUNNING = 'RUNNING',
@@ -145,6 +151,13 @@ export interface Project {
   bidAmount?: number;
   bidSubmittedAt?: string;
 
+  // Lead Review
+  reviewStatus?: ReviewStatus;
+  reviewComments?: string;
+  reviewedById?: string;
+  reviewedBy?: User;
+  reviewedAt?: string;
+
   // Org Scoping
   organizationId: string;
   organization?: Organization;
@@ -183,6 +196,7 @@ export interface Project {
     tasks?: number;
     meetings?: number;
     milestones?: number;
+    videoProposals?: number;
   };
 
   createdAt: string;

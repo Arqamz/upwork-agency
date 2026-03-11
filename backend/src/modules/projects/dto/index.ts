@@ -3,3 +3,4 @@ export * from './update-project.dto';
 export * from './create-milestone.dto';
 export * from './update-milestone.dto';
 export * from './assign-project.dto';
+export * from './review-project.dto';

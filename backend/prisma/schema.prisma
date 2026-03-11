@@ -60,6 +60,7 @@ model User {
   lastEditedProjects Project[] @relation("ProjectLastEditedBy")
   assignedAsCloser   Project[] @relation("ProjectCloser")
   assignedAsPM       Project[] @relation("ProjectPM")
+  reviewedProjects   Project[] @relation("ProjectReviewer")
 
   assignedTasks Task[]       @relation("TaskAssignee")
   qaReviews     QAReview[]   @relation("QAReviewer")
@@ -172,6 +173,12 @@ enum PricingType {
   FIXED
 }
 
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Project {
   id String @id @default(uuid())
 
@@ -193,6 +200,13 @@ model Project {
   upworkAccount  String?   @map("upwork_account")
   bidAmount      Float?    @map("bid_amount")
   bidSubmittedAt DateTime? @map("bid_submitted_at")
+
+  // Lead Review
+  reviewStatus   ReviewStatus? @map("review_status")
+  reviewComments String?       @map("review_comments")
+  reviewedById   String?       @map("reviewed_by_id")
+  reviewedBy     User?         @relation("ProjectReviewer", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?     @map("reviewed_at")
 
   // Org Scoping
   organizationId String       @map("organization_id")
@@ -241,6 +255,7 @@ model Project {
   @@index([assignedCloserId], map: "idx_projects_closer")
   @@index([assignedPMId], map: "idx_projects_pm")
   @@index([discoveredById], map: "idx_projects_discovered_by")
+  @@index([reviewedById], map: "idx_projects_reviewed_by")
   @@map("projects")
 }
 

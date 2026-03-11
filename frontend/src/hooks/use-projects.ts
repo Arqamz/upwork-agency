@@ -2,12 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
 import api from '@/lib/api';
-import type { Project, PaginatedResponse, PipelineCount } from '@/types';
+import type { Project, PaginatedResponse, PipelineCount, ReviewStatus } from '@/types';
 
 interface FindProjectsParams {
   page?: number;
   limit?: number;
   stage?: string;
+  excludeStages?: string;
   organizationId?: string;
   assignedCloserId?: string;
   assignedPMId?: string;
@@ -72,6 +73,7 @@ export function useCreateProject() {
       nicheId?: string;
       teamId?: string;
       discoveredById?: string;
+      assignedCloserId?: string;
     }) => {
       const res = await api.post('/projects', data);
       return res.data;
@@ -168,6 +170,31 @@ export function useAssignProject() {
     },
     onError: (error: unknown) => {
       toast.error(extractError(error, 'Failed to assign project'));
+    },
+  });
+}
+
+export function useReviewProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...data
+    }: {
+      id: string;
+      status: ReviewStatus;
+      comments?: string;
+      reviewedById?: string;
+    }) => {
+      const res = await api.post(`/projects/${id}/review`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Review submitted');
+    },
+    onError: (error: unknown) => {
+      toast.error(extractError(error, 'Failed to submit review'));
     },
   });
 }

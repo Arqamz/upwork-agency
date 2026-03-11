@@ -15,7 +15,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@/common/guards';
 import { PaginationDto } from '@/common/dto';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto, UpdateProjectDto, AssignProjectDto } from './dto';
+import { CreateProjectDto, UpdateProjectDto, AssignProjectDto, ReviewProjectDto } from './dto';
 import { ProjectStage } from '@prisma/client';
 
 @ApiTags('Projects')
@@ -34,6 +34,11 @@ export class ProjectsController {
   @Get()
   @ApiOperation({ summary: 'List projects with optional filters' })
   @ApiQuery({ name: 'stage', enum: ProjectStage, required: false })
+  @ApiQuery({
+    name: 'excludeStages',
+    required: false,
+    description: 'Comma-separated stages to exclude',
+  })
   @ApiQuery({ name: 'organizationId', required: false })
   @ApiQuery({ name: 'assignedCloserId', required: false })
   @ApiQuery({ name: 'assignedPMId', required: false })
@@ -43,6 +48,7 @@ export class ProjectsController {
   findAll(
     @Query() pagination: PaginationDto,
     @Query('stage') stage?: ProjectStage,
+    @Query('excludeStages') excludeStages?: string,
     @Query('organizationId') organizationId?: string,
     @Query('assignedCloserId') assignedCloserId?: string,
     @Query('assignedPMId') assignedPMId?: string,
@@ -50,8 +56,12 @@ export class ProjectsController {
     @Query('nicheId') nicheId?: string,
     @Query('teamId') teamId?: string,
   ) {
+    const excludeStagesArray = excludeStages
+      ? (excludeStages.split(',').filter((s) => s in ProjectStage) as ProjectStage[])
+      : undefined;
     return this.projectsService.findAll(pagination, {
       stage,
+      excludeStages: excludeStagesArray,
       organizationId,
       assignedCloserId,
       assignedPMId,
@@ -94,10 +104,15 @@ export class ProjectsController {
   }
 
   @Patch(':id/assign')
-  @ApiOperation({
-    summary: 'Assign closer and/or PM to a project (auto-advances UNDER_REVIEW → ASSIGNED)',
-  })
+  @ApiOperation({ summary: 'Assign closer and/or PM to a project' })
   assign(@Param('id', ParseUUIDPipe) id: string, @Body() dto: AssignProjectDto) {
     return this.projectsService.assign(id, dto);
+  }
+
+  @Post(':id/review')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Review a project (lead/admin approve or reject)' })
+  reviewProject(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ReviewProjectDto) {
+    return this.projectsService.reviewProject(id, dto);
   }
 }

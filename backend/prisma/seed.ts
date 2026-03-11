@@ -6,6 +6,7 @@ import {
   MeetingType,
   MeetingStatus,
   TaskStatus,
+  ReviewStatus,
 } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcryptjs';
@@ -471,7 +472,7 @@ async function seedProjects(
       discoveredById: users[IDS.USER_BIDDER2].id,
       lastEditedById: users[IDS.USER_BIDDER].id,
     },
-    // Stage: UNDER_REVIEW
+    // Stage: UNDER_REVIEW (reviewStatus: PENDING — awaiting lead review)
     {
       id: IDS.PROJ_3,
       title: 'Flutter Mobile App for Fitness Tracking',
@@ -481,6 +482,7 @@ async function seedProjects(
       pricingType: PricingType.FIXED,
       fixedPrice: 12000,
       stage: ProjectStage.UNDER_REVIEW,
+      reviewStatus: ReviewStatus.PENDING,
       coverLetter:
         "Your fitness app concept is exactly the kind of project we excel at. We've built 8 Flutter apps in the health/fitness space, including [App Name] which hit 10k downloads in its first month. We'll deliver a polished, performant app on time.",
       videoScript:
@@ -490,8 +492,9 @@ async function seedProjects(
       teamId,
       discoveredById: users[IDS.USER_BIDDER].id,
       lastEditedById: users[IDS.USER_BIDDER].id,
+      assignedCloserId: users[IDS.USER_CLOSER2].id,
     },
-    // Stage: ASSIGNED
+    // Stage: UNDER_REVIEW (reviewStatus: APPROVED — lead approved, closer can now submit bid)
     {
       id: IDS.PROJ_4,
       title: 'AWS Infrastructure Setup & CI/CD Pipeline',
@@ -500,7 +503,12 @@ async function seedProjects(
         'Startup needs AWS infrastructure from scratch: ECS, RDS, S3, CloudFront. Must include GitHub Actions CI/CD, monitoring with Datadog.',
       pricingType: PricingType.FIXED,
       fixedPrice: 5500,
-      stage: ProjectStage.ASSIGNED,
+      stage: ProjectStage.UNDER_REVIEW,
+      reviewStatus: ReviewStatus.APPROVED,
+      reviewComments:
+        'Great proposal! The technical approach is solid. Go ahead and submit the bid.',
+      reviewedById: users[IDS.USER_LEAD].id,
+      reviewedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       coverLetter:
         "We're AWS-certified architects who have set up infrastructure for 30+ startups. We'll have your full stack deployed, monitored, and auto-scaling within 2 weeks. We include thorough documentation and a handover call.",
       videoScript:
