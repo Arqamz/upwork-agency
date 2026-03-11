@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { bootstrapApp, login, server, IDS } from './helpers';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('Tasks & QA (e2e)', () => {
   let app: INestApplication;
@@ -10,6 +11,10 @@ describe('Tasks & QA (e2e)', () => {
     app = await bootstrapApp();
     const res = await login(app, 'admin@aop.local');
     adminToken = res.accessToken;
+
+    // Clean up any QA review for TASK_2 left by a previous test run
+    const prisma = app.get(PrismaService);
+    await prisma.qAReview.deleteMany({ where: { taskId: IDS.TASK_2 } });
   });
 
   afterAll(async () => {

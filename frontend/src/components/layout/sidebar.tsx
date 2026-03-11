@@ -85,14 +85,22 @@ export function Sidebar() {
   const visibleItems = navItems.filter((item) => item.roles.includes(userRole));
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:bg-card">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-border/50 bg-card/60 backdrop-blur-xl">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-3 border-b border-border/50 px-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[hsl(330,75%,62%)] text-white font-bold text-sm shadow-sm">
           A
         </div>
-        <span className="text-lg font-semibold text-foreground">AOP</span>
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold tracking-tight text-foreground">AOP</span>
+          <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
+            Platform
+          </span>
+        </div>
       </div>
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {visibleItems.map((item) => {
           const isActive =
             pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
@@ -101,18 +109,25 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                  ? 'bg-gradient-to-r from-primary/15 to-[hsl(330,75%,62%)/8%] text-primary border border-primary/20 shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon
+                className={cn(
+                  'h-4 w-4 shrink-0 transition-colors',
+                  isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                )}
+              />
               {item.label}
+              {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
             </Link>
           );
         })}
       </nav>
+
       <OrgSwitcher />
     </aside>
   );

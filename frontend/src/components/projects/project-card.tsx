@@ -2,6 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import type { Project } from '@/types';
@@ -10,6 +11,7 @@ import { ProjectStage, PricingType, ReviewStatus } from '@/types';
 interface ProjectCardProps {
   project: Project;
   onClick: () => void;
+  index?: number;
 }
 
 const SUB_STAGE_LABELS: Partial<Record<ProjectStage, string>> = {
@@ -38,15 +40,15 @@ function getReviewBadge(project: Project) {
   const variants: Record<string, { label: string; className: string }> = {
     [ReviewStatus.PENDING]: {
       label: 'Pending Review',
-      className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+      className: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/25',
     },
     [ReviewStatus.APPROVED]: {
       label: 'Approved',
-      className: 'bg-green-500/20 text-green-400 border-green-500/30',
+      className: 'bg-green-500/15 text-green-400 border-green-500/25',
     },
     [ReviewStatus.REJECTED]: {
       label: 'Rejected',
-      className: 'bg-red-500/20 text-red-400 border-red-500/30',
+      className: 'bg-red-500/15 text-red-400 border-red-500/25',
     },
   };
   const v = variants[project.reviewStatus];
@@ -58,7 +60,7 @@ function getReviewBadge(project: Project) {
   );
 }
 
-export function ProjectCard({ project, onClick }: ProjectCardProps) {
+export function ProjectCard({ project, onClick, index = 0 }: ProjectCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: project.id,
     data: { type: 'project', project },
@@ -78,15 +80,22 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
   const subStageBadge = SUB_STAGE_LABELS[project.stage];
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: isDragging ? 0.5 : 1, scale: 1 }}
+      whileHover={isDragging ? {} : { scale: 1.015, y: -1 }}
+      whileTap={isDragging ? {} : { scale: 0.98 }}
+      transition={{ duration: 0.15, delay: index * 0.03 }}
       onClick={onClick}
       className={cn(
-        'cursor-pointer rounded-md border bg-card p-3 shadow-sm transition-colors hover:border-primary/50 hover:bg-accent/50',
-        isDragging && 'opacity-50 shadow-lg',
+        'cursor-pointer rounded-lg border border-border/50 bg-card/70 p-3 shadow-sm backdrop-blur-sm',
+        'transition-[border-color,box-shadow] duration-200',
+        'hover:border-primary/30 hover:shadow-md hover:shadow-primary/5',
+        isDragging && 'ring-2 ring-primary/30 shadow-lg shadow-primary/10',
       )}
     >
       {/* Title */}
@@ -97,7 +106,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
         {subStageBadge && (
           <Badge
             variant="outline"
-            className="text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30"
+            className="border-blue-500/25 bg-blue-500/15 text-[10px] text-blue-400"
           >
             {subStageBadge}
           </Badge>
@@ -135,6 +144,6 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
           {(project._count?.videoProposals ?? 0) > 1 ? 's' : ''}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { bootstrapApp, login, server, IDS } from './helpers';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('Organizations (e2e)', () => {
   let app: INestApplication;
@@ -13,6 +14,12 @@ describe('Organizations (e2e)', () => {
     adminToken = adminRes.accessToken;
     const bidderRes = await login(app, 'bidder@aop.local');
     bidderToken = bidderRes.accessToken;
+
+    // Clean up any leftover test orgs from previous runs
+    const prisma = app.get(PrismaService);
+    await prisma.organization.deleteMany({
+      where: { slug: { in: ['e2e-test-org', 'member-test-org'] } },
+    });
   });
 
   afterAll(async () => {

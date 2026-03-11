@@ -297,7 +297,7 @@ export default function ProjectsPage() {
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
+          <h1 className="gradient-text text-2xl font-bold tracking-tight">Projects</h1>
           <p className="text-sm text-muted-foreground">
             Drag cards to the next column to advance stage
           </p>
@@ -529,7 +529,7 @@ export default function ProjectsPage() {
             onDragEnd={handleDragEnd}
           >
             <div className="flex h-full gap-4">
-              {visibleColumns.map((col) => (
+              {visibleColumns.map((col, colIndex) => (
                 <KanbanColumn
                   key={col.id}
                   id={col.id}
@@ -538,13 +538,14 @@ export default function ProjectsPage() {
                   projects={columnProjects[col.id] ?? []}
                   color={col.color}
                   onCardClick={handleCardClick}
+                  index={colIndex}
                 />
               ))}
             </div>
 
             <DragOverlay>
               {activeProject ? (
-                <div className="w-[280px]">
+                <div className="w-[280px] rounded-xl ring-2 ring-primary/40 shadow-xl shadow-primary/15">
                   <ProjectCard project={activeProject} onClick={() => {}} />
                 </div>
               ) : null}

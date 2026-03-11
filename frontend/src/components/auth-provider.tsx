@@ -16,6 +16,7 @@ import {
 } from '@/lib/auth';
 import api from '@/lib/api';
 import type { User } from '@/types';
+import { OrgSwitchOverlay } from '@/components/org-switch-overlay';
 
 interface AuthContextValue {
   user: TokenUser | null;
@@ -38,6 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeOrganizationId, setActiveOrganizationId] = useState<string | null>(null);
+
+  // Org switch overlay state
+  const [switchingOrg, setSwitchingOrg] = useState(false);
+  const [switchingOrgName, setSwitchingOrgName] = useState('');
 
   const fetchMe = useCallback(async () => {
     try {
@@ -110,15 +115,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   }, [router]);
 
-  const switchOrg = useCallback(async (organizationId: string) => {
-    const { data } = await api.post('/auth/switch-org', { organizationId });
-    setToken(data.accessToken);
-    setRefreshToken(data.refreshToken);
-    const currentUser = getUser();
-    setUser(currentUser);
-    setActiveOrganizationId(organizationId);
-    setActiveOrg(organizationId);
-  }, []);
+  const switchOrg = useCallback(
+    async (organizationId: string) => {
+      if (organizationId === activeOrganizationId) return;
+
+      // Resolve org name from fullUser memberships for overlay
+      const membership = fullUser?.organizations?.find((m) => m.organizationId === organizationId);
+      const name = membership?.organization?.name ?? 'Organization';
+
+      // Show overlay
+      setSwitchingOrgName(name);
+      setSwitchingOrg(true);
+
+      try {
+        const { data } = await api.post('/auth/switch-org', { organizationId });
+        setToken(data.accessToken);
+        setRefreshToken(data.refreshToken);
+        const currentUser = getUser();
+        setUser(currentUser);
+        setActiveOrganizationId(organizationId);
+        setActiveOrg(organizationId);
+      } finally {
+        // Keep overlay visible for a beat after switch completes
+        setTimeout(() => setSwitchingOrg(false), 900);
+      }
+    },
+    [activeOrganizationId, fullUser],
+  );
 
   return (
     <AuthContext.Provider
@@ -135,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <OrgSwitchOverlay visible={switchingOrg} orgName={switchingOrgName} />
     </AuthContext.Provider>
   );
 }

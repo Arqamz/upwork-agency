@@ -316,7 +316,7 @@ function StageActionBanner({
   if (!primaryAction && !hint && secondaryActions.length === 0) return null;
 
   return (
-    <div className="shrink-0 space-y-3 border-b bg-muted/40 px-6 py-4">
+    <div className="shrink-0 space-y-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-[hsl(330,75%,62%,0.05)] px-6 py-4">
       {/* Rejected banner */}
       {stage === ProjectStage.UNDER_REVIEW && project.reviewStatus === ReviewStatus.REJECTED && (
         <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3">
@@ -716,7 +716,7 @@ export function ProjectDetailSheet({ projectId, onClose }: ProjectDetailSheetPro
         {project && (
           <>
             {/* ── Header ─────────────────────────────────────────────── */}
-            <SheetHeader className="shrink-0 border-b px-6 pb-4 pt-6">
+            <SheetHeader className="shrink-0 border-b border-border/50 px-6 pb-4 pt-6">
               <div className="pr-8">
                 <SheetTitle className="text-xl leading-tight">{project.title}</SheetTitle>
                 <SheetDescription className="sr-only">Project details</SheetDescription>
@@ -772,8 +772,8 @@ export function ProjectDetailSheet({ projectId, onClose }: ProjectDetailSheetPro
               onValueChange={setActiveTab}
               className="flex flex-1 flex-col overflow-hidden"
             >
-              <div className="shrink-0 px-6 pt-3">
-                <TabsList className="w-full">
+              <div className="shrink-0 border-b border-border/50 px-6 pt-3">
+                <TabsList className="w-full bg-muted/50">
                   <TabsTrigger value="overview" className="flex-1">
                     Overview
                   </TabsTrigger>

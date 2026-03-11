@@ -35,7 +35,7 @@ export function TopBar() {
 
   return (
     <>
-      <header className="flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
+      <header className="flex h-16 items-center gap-3 border-b border-border/50 bg-card/60 backdrop-blur-xl px-4 lg:px-6">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="lg:hidden">
@@ -51,43 +51,66 @@ export function TopBar() {
 
         <div className="flex-1" />
 
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        {/* Notification bell */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative text-muted-foreground hover:text-foreground"
+        >
+          <Bell className="h-4 w-4" />
           <span className="sr-only">Notifications</span>
         </Button>
 
+        {/* Theme toggle */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           aria-label="Toggle theme"
+          className="text-muted-foreground hover:text-foreground"
         >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         </Button>
 
+        {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            <Button
+              variant="ghost"
+              className="relative h-9 w-9 rounded-full p-0 ring-2 ring-border/50 hover:ring-primary/40 transition-all duration-200"
+            >
+              <Avatar className="h-9 w-9">
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-[hsl(330,75%,62%)/20] text-primary text-xs font-semibold">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent
+            className="w-56 bg-card/90 backdrop-blur-xl border-border/60"
+            align="end"
+            forceMount
+          >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{displayName}</p>
                 <p className="text-xs leading-none text-muted-foreground capitalize">{roleName}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setProfileOpen(true)}>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem
+              onClick={() => setProfileOpen(true)}
+              className="cursor-pointer hover:bg-accent/60"
+            >
               <UserIcon className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => logout()}>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem
+              onClick={() => logout()}
+              className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive focus:text-destructive"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>
