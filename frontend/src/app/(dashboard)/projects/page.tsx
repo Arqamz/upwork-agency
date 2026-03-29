@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import confetti from 'canvas-confetti';
 import {
   DndContext,
   DragOverlay,
@@ -13,11 +14,16 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { useProjects, useCreateProject, useAdvanceStage } from '@/hooks/use-projects';
+import {
+  useProjects,
+  useCreateProject,
+  useAdvanceStage,
+  useUpdateProject,
+} from '@/hooks/use-projects';
 import { useNiches } from '@/hooks/use-niches';
 import { useUsers } from '@/hooks/use-users';
 import { useAuthContext } from '@/components/auth-provider';
-import { ProjectDetailSheet } from '@/components/projects/project-detail-sheet';
+import { ProjectDetailModal } from '@/components/projects/project-detail-modal';
 import { KanbanColumn } from '@/components/projects/kanban-column';
 import { ProjectCard } from '@/components/projects/project-card';
 import { Badge } from '@/components/ui/badge';
@@ -42,9 +48,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Plus, Archive, XCircle, Trophy } from 'lucide-react';
-import { ProjectStage, PricingType } from '@/types';
+import { ProjectStage, PricingType, ReviewStatus } from '@/types';
 import type { Project } from '@/types';
-import { STAGE_LABELS } from '@/components/projects/project-detail-sheet';
+import { STAGE_LABELS } from '@/components/projects/project-detail-modal';
 
 // ── Column definitions ────────────────────────────────────────────────────────
 
@@ -62,10 +68,27 @@ const COLUMNS: ColumnDef[] = [
     stages: [ProjectStage.DISCOVERED],
     color: 'bg-slate-400',
   },
-  { id: 'scripted', title: 'Scripted', stages: [ProjectStage.SCRIPTED], color: 'bg-blue-400' },
+  {
+    id: 'scripted',
+    title: 'Scripted',
+    stages: [ProjectStage.SCRIPTED],
+    color: 'bg-blue-400',
+  },
+  {
+    id: 'script_review',
+    title: 'Script Review',
+    stages: [ProjectStage.SCRIPT_REVIEW],
+    color: 'bg-indigo-400',
+  },
+  {
+    id: 'video_draft',
+    title: 'Video Draft',
+    stages: [ProjectStage.VIDEO_DRAFT],
+    color: 'bg-cyan-400',
+  },
   {
     id: 'under_review',
-    title: 'Under Review',
+    title: 'Video Review',
     stages: [ProjectStage.UNDER_REVIEW],
     color: 'bg-yellow-400',
   },
@@ -104,8 +127,8 @@ const HIDDEN_STAGES = [
 const ROLE_VISIBLE_COLUMNS: Record<string, string[]> = {
   admin: COLUMN_ORDER,
   lead: COLUMN_ORDER,
-  bidder: ['discovered', 'scripted'],
-  closer: ['scripted', 'under_review', 'bid_submitted', 'bid_active'],
+  bidder: ['discovered', 'scripted', 'script_review'],
+  closer: ['video_draft', 'under_review', 'bid_submitted', 'bid_active'],
   project_manager: ['in_progress'],
 };
 
@@ -188,6 +211,38 @@ export default function ProjectsPage() {
           buckets[colId].push(project);
         }
       }
+
+      // Smart sort for "Script Review" column
+      if (buckets['script_review']) {
+        buckets['script_review'].sort((a, b) => {
+          const getRank = (status?: string | null) => {
+            if (status === ReviewStatus.REJECTED) return 0;
+            if (status === ReviewStatus.APPROVED) return 1;
+            return 2; // PENDING or undefined
+          };
+          const rankA = getRank(a.scriptReviewStatus);
+          const rankB = getRank(b.scriptReviewStatus);
+
+          if (rankA !== rankB) return rankA - rankB;
+          return (a.sortOrder || 0) - (b.sortOrder || 0);
+        });
+      }
+
+      // Smart sort for "Under Review" column
+      if (buckets['under_review']) {
+        buckets['under_review'].sort((a, b) => {
+          const getRank = (status?: string | null) => {
+            if (status === ReviewStatus.REJECTED) return 0;
+            if (status === ReviewStatus.APPROVED) return 1;
+            return 2; // PENDING or undefined
+          };
+          const rankA = getRank(a.reviewStatus);
+          const rankB = getRank(b.reviewStatus);
+
+          if (rankA !== rankB) return rankA - rankB;
+          return (a.sortOrder || 0) - (b.sortOrder || 0);
+        });
+      }
     }
     return buckets;
   }, [mainData]);
@@ -212,6 +267,8 @@ export default function ProjectsPage() {
     [mainData],
   );
 
+  const updateProject = useUpdateProject();
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActiveProject(null);
@@ -221,21 +278,78 @@ export default function ProjectsPage() {
       const project = mainData?.data.find((p) => p.id === active.id);
       if (!project) return;
 
-      const sourceCol = getColumnForStage(project.stage);
-      const targetCol = over.id as string;
+      let targetColId: string | null = null;
+      let targetIndex = -1;
 
-      // Only allow drops on columns (not other cards)
-      if (!COLUMN_ORDER.includes(targetCol)) return;
-      // Same column — no-op
-      if (sourceCol === targetCol) return;
-      // Validate: can only move to the NEXT column
-      const nextCol = sourceCol ? getNextColumnId(sourceCol) : null;
-      if (targetCol !== nextCol) return;
+      if (over.data.current?.type === 'column') {
+        targetColId = over.id as string;
+        targetIndex = columnProjects[targetColId]?.length ?? 0;
+      } else if (over.data.current?.type === 'project') {
+        const overProject = over.data.current.project as Project;
+        targetColId = getColumnForStage(overProject.stage);
+        if (targetColId) {
+          const colProjects = columnProjects[targetColId] || [];
+          targetIndex = colProjects.findIndex((p) => p.id === overProject.id);
+        }
+      }
 
-      // Execute advance
-      advanceStage.mutate(project.id);
+      if (!targetColId) return;
+
+      const sourceColId = getColumnForStage(project.stage);
+      const isSameCol = sourceColId === targetColId;
+
+      const colProjects = columnProjects[targetColId] || [];
+      let newSortOrder = 0;
+
+      if (colProjects.length === 0) {
+        newSortOrder = 1000;
+      } else if (targetIndex === 0) {
+        newSortOrder = (colProjects[0].sortOrder || 0) - 1000;
+      } else if (targetIndex >= colProjects.length) {
+        newSortOrder = (colProjects[colProjects.length - 1].sortOrder || 0) + 1000;
+      } else {
+        let prev = colProjects[targetIndex - 1];
+        let next = colProjects[targetIndex];
+
+        if (isSameCol) {
+          const activeIndex = colProjects.findIndex((p) => p.id === project.id);
+          if (activeIndex < targetIndex) {
+            prev = colProjects[targetIndex];
+            next = colProjects[targetIndex + 1] || null;
+          }
+        }
+
+        if (next) {
+          newSortOrder = ((prev.sortOrder || 0) + (next.sortOrder || 0)) / 2;
+        } else {
+          newSortOrder = (prev.sortOrder || 0) + 1000;
+        }
+      }
+
+      const targetColDef = COLUMNS.find((c) => c.id === targetColId);
+      const newStage = targetColDef?.stages[0] ?? project.stage;
+
+      if (isSameCol && Math.abs(newSortOrder - (project.sortOrder || 0)) < 0.1) {
+        return;
+      }
+
+      // Check for 'WON' confetti
+      if (newStage === ProjectStage.WON && project.stage !== ProjectStage.WON) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#3b82f6', '#f59e0b', '#10b981', '#ffffff'],
+        });
+      }
+
+      updateProject.mutate({
+        id: project.id,
+        stage: newStage,
+        sortOrder: newSortOrder,
+      });
     },
-    [mainData, advanceStage],
+    [mainData, columnProjects, updateProject],
   );
 
   const handleCardClick = useCallback((project: Project) => {
@@ -288,7 +402,7 @@ export default function ProjectsPage() {
     setCreateOpen(false);
   };
 
-  const canCreate = ['admin', 'lead'].includes(role);
+  const canCreate = ['admin', 'lead', 'bidder'].includes(role);
 
   if (BLOCKED_ROLES.includes(role)) return null;
 
@@ -632,7 +746,7 @@ export default function ProjectsPage() {
       )}
 
       {/* ── Project Detail Sheet ──────────────────────────────────────── */}
-      <ProjectDetailSheet
+      <ProjectDetailModal
         projectId={selectedProjectId}
         onClose={() => setSelectedProjectId(null)}
       />

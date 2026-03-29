@@ -36,7 +36,15 @@ function formatPrice(project: Project): string {
 }
 
 function getReviewBadge(project: Project) {
-  if (project.stage !== ProjectStage.UNDER_REVIEW || !project.reviewStatus) return null;
+  let status: string | undefined | null = null;
+  if (project.stage === ProjectStage.UNDER_REVIEW) {
+    status = project.reviewStatus;
+  } else if (project.stage === ProjectStage.SCRIPT_REVIEW) {
+    status = project.scriptReviewStatus;
+  }
+
+  if (!status) return null;
+
   const variants: Record<string, { label: string; className: string }> = {
     [ReviewStatus.PENDING]: {
       label: 'Pending Review',
@@ -51,7 +59,7 @@ function getReviewBadge(project: Project) {
       className: 'bg-red-500/20 text-red-400 border-red-500/30',
     },
   };
-  const v = variants[project.reviewStatus];
+  const v = variants[status];
   if (!v) return null;
   return (
     <Badge variant="outline" className={cn('text-[10px]', v.className)}>

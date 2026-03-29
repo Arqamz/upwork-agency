@@ -26,7 +26,10 @@ export function KanbanColumn({
   onCardClick,
   index = 0,
 }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id });
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: { type: 'column', id },
+  });
 
   return (
     <motion.div

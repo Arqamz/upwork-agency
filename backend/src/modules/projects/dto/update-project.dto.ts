@@ -94,6 +94,11 @@ export class UpdateProjectDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsNumber()
+  sortOrder?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   clientName?: string;
 
