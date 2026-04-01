@@ -204,6 +204,7 @@ export interface Project {
   // Won Project Fields
   clientName?: string;
   clientNotes?: string;
+  developerNotes?: string;
   contractValue?: number;
   contractCurrency?: string;
   startDate?: string;
@@ -229,6 +230,10 @@ export interface Project {
     milestones?: number;
     videoProposals?: number;
   };
+
+  // Enriched by findAll — per-status task counts
+  taskStatusCounts?: Record<string, number>;
+  urgentTaskCount?: number;
 
   createdAt: string;
   updatedAt: string;

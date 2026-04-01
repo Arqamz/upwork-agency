@@ -40,6 +40,21 @@ export class TasksService {
     return new PaginatedResult(data, total, query.page ?? 1, query.limit ?? 20);
   }
 
+  async findAllForKanban(filters: { assigneeId?: string; projectId?: string }) {
+    const where: Prisma.TaskWhereInput = {};
+    if (filters.projectId) where.projectId = filters.projectId;
+    if (filters.assigneeId) where.assigneeId = filters.assigneeId;
+    return this.prisma.task.findMany({
+      where,
+      take: 500,
+      include: {
+        assignee: { select: { id: true, email: true, firstName: true, lastName: true } },
+        project: { select: { id: true, title: true } },
+      },
+      orderBy: [{ isUrgent: 'desc' }, { priority: 'desc' }, { createdAt: 'asc' }],
+    });
+  }
+
   async findAllByProject(projectId: string) {
     return this.prisma.task.findMany({
       where: { projectId },

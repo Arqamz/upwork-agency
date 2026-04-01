@@ -115,6 +115,11 @@ export class UpdateProjectDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  developerNotes?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsNumber()
   @Min(0)
   contractValue?: number;

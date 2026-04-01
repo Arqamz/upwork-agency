@@ -249,6 +249,7 @@ model Project {
   // Won Project Fields
   clientName       String?   @map("client_name")
   clientNotes      String?   @map("client_notes")
+  developerNotes   String?   @map("developer_notes")
   contractValue    Float?    @map("contract_value")
   contractCurrency String    @default("USD") @map("contract_currency")
   startDate        DateTime? @map("start_date")

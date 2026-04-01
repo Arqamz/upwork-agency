@@ -111,6 +111,39 @@ export class ProjectsService {
       this.prisma.project.count({ where }),
     ]);
 
+    // Enrich projects with per-status task counts and urgent counts
+    const projectIds = data.map((p) => p.id);
+    if (projectIds.length > 0) {
+      const [taskStatusCounts, urgentCounts] = await Promise.all([
+        this.prisma.task.groupBy({
+          by: ['projectId', 'status'],
+          where: { projectId: { in: projectIds } },
+          _count: { id: true },
+        }),
+        this.prisma.task.groupBy({
+          by: ['projectId'],
+          where: { projectId: { in: projectIds }, isUrgent: true },
+          _count: { id: true },
+        }),
+      ]);
+
+      const statusMap = new Map<string, Record<string, number>>();
+      for (const row of taskStatusCounts) {
+        if (!statusMap.has(row.projectId)) statusMap.set(row.projectId, {});
+        statusMap.get(row.projectId)![row.status] = row._count.id;
+      }
+
+      const urgentMap = new Map<string, number>();
+      for (const row of urgentCounts) {
+        urgentMap.set(row.projectId, row._count.id);
+      }
+
+      for (const project of data as any[]) {
+        project.taskStatusCounts = statusMap.get(project.id) ?? {};
+        project.urgentTaskCount = urgentMap.get(project.id) ?? 0;
+      }
+    }
+
     return new PaginatedResult(data, total, pagination.page ?? 1, pagination.limit ?? 20);
   }
 
@@ -128,10 +161,17 @@ export class ProjectsService {
         reviewedBy: USER_SELECT,
         scriptReviewedBy: USER_SELECT,
         milestones: { orderBy: { createdAt: 'asc' } },
-        tasks: { orderBy: { createdAt: 'desc' } },
-        meetings: { orderBy: { scheduledAt: 'asc' } },
+        tasks: {
+          orderBy: [{ isUrgent: 'desc' }, { priority: 'desc' }, { createdAt: 'asc' }],
+          include: { assignee: USER_SELECT },
+        },
+        meetings: {
+          orderBy: { scheduledAt: 'desc' },
+          include: { closer: USER_SELECT },
+        },
         videoProposals: { orderBy: { createdAt: 'desc' } },
         links: { orderBy: { createdAt: 'desc' }, include: { addedBy: USER_SELECT } },
+        chatMessages: { orderBy: { sentAt: 'asc' } },
       },
     });
 

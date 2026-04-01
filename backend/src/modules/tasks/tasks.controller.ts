@@ -31,6 +31,15 @@ export class TasksController {
     return this.tasksService.findAll(query);
   }
 
+  @Get('all')
+  @ApiOperation({ summary: 'Get all tasks (unpaginated, for kanban — max 500)' })
+  findAllForKanban(
+    @Query('assigneeId') assigneeId?: string,
+    @Query('projectId') projectId?: string,
+  ) {
+    return this.tasksService.findAllForKanban({ assigneeId, projectId });
+  }
+
   @Get('by-project/:projectId')
   @ApiOperation({ summary: 'Get all tasks for a project (unpaginated, for kanban)' })
   findAllByProject(@Param('projectId', ParseUUIDPipe) projectId: string) {

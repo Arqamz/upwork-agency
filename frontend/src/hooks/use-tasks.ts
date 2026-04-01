@@ -102,3 +102,16 @@ export function useProjectTasks(projectId: string) {
     enabled: !!projectId,
   });
 }
+
+export function useAllTasks(params: { assigneeId?: string; projectId?: string } = {}) {
+  return useQuery<Task[]>({
+    queryKey: ['tasks', 'all', params],
+    queryFn: async () => {
+      const filtered = Object.fromEntries(
+        Object.entries(params).filter(([, v]) => v !== undefined && v !== ''),
+      );
+      const res = await api.get('/tasks/all', { params: filtered });
+      return res.data;
+    },
+  });
+}
