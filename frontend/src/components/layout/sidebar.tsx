@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   FolderKanban,
+  Briefcase,
   Calendar,
   ListChecks,
   ClipboardCheck,
@@ -32,10 +33,16 @@ const navItems: NavItem[] = [
     roles: ['admin', 'lead', 'bidder', 'closer', 'project_manager', 'operator', 'qa'],
   },
   {
+    label: 'Jobs',
+    href: '/jobs',
+    icon: FolderKanban,
+    roles: ['admin', 'lead', 'bidder', 'closer'],
+  },
+  {
     label: 'Projects',
     href: '/projects',
-    icon: FolderKanban,
-    roles: ['admin', 'lead', 'bidder', 'closer', 'project_manager', 'developer'],
+    icon: Briefcase,
+    roles: ['admin', 'lead', 'project_manager', 'closer', 'developer'],
   },
   {
     label: 'Meetings',
