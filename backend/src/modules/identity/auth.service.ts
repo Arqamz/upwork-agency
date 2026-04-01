@@ -245,4 +245,55 @@ export class AuthService {
       refreshToken: refreshTokenValue,
     };
   }
+
+  // ── Upwork Account Management ──────────────────────────────────────────────
+
+  async getUpworkAccounts(userId: string) {
+    return this.prisma.upworkAccount.findMany({
+      where: { userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async createUpworkAccount(userId: string, dto: { accountName: string; profileUrl?: string }) {
+    // If this is the first account, make it default
+    const existingCount = await this.prisma.upworkAccount.count({ where: { userId } });
+    return this.prisma.upworkAccount.create({
+      data: {
+        userId,
+        accountName: dto.accountName,
+        profileUrl: dto.profileUrl,
+        isDefault: existingCount === 0,
+      },
+    });
+  }
+
+  async deleteUpworkAccount(userId: string, accountId: string) {
+    const account = await this.prisma.upworkAccount.findFirst({
+      where: { id: accountId, userId },
+    });
+    if (!account) throw new NotFoundException('Upwork account not found');
+    return this.prisma.upworkAccount.delete({ where: { id: accountId } });
+  }
+
+  async setDefaultUpworkAccount(userId: string, accountId: string) {
+    const account = await this.prisma.upworkAccount.findFirst({
+      where: { id: accountId, userId },
+    });
+    if (!account) throw new NotFoundException('Upwork account not found');
+
+    // Transaction: unset all defaults, set the target
+    await this.prisma.$transaction([
+      this.prisma.upworkAccount.updateMany({
+        where: { userId },
+        data: { isDefault: false },
+      }),
+      this.prisma.upworkAccount.update({
+        where: { id: accountId },
+        data: { isDefault: true },
+      }),
+    ]);
+
+    return this.prisma.upworkAccount.findUnique({ where: { id: accountId } });
+  }
 }

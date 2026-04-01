@@ -1,5 +1,15 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/common/guards';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto, FindTasksDto, AssignTaskDto } from './dto';
@@ -19,6 +29,12 @@ export class TasksController {
   @Get()
   findAll(@Query() query: FindTasksDto) {
     return this.tasksService.findAll(query);
+  }
+
+  @Get('by-project/:projectId')
+  @ApiOperation({ summary: 'Get all tasks for a project (unpaginated, for kanban)' })
+  findAllByProject(@Param('projectId', ParseUUIDPipe) projectId: string) {
+    return this.tasksService.findAllByProject(projectId);
   }
 
   @Get(':id')

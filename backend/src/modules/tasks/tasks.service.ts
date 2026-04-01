@@ -40,6 +40,16 @@ export class TasksService {
     return new PaginatedResult(data, total, query.page ?? 1, query.limit ?? 20);
   }
 
+  async findAllByProject(projectId: string) {
+    return this.prisma.task.findMany({
+      where: { projectId },
+      include: {
+        assignee: { select: { id: true, email: true, firstName: true, lastName: true } },
+      },
+      orderBy: [{ isUrgent: 'desc' }, { priority: 'desc' }, { createdAt: 'asc' }],
+    });
+  }
+
   async findById(id: string) {
     const task = await this.prisma.task.findUnique({
       where: { id },

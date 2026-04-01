@@ -69,6 +69,12 @@ export class UpdateProjectDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  suggestedBidAmount?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsUUID()
   nicheId?: string;
 

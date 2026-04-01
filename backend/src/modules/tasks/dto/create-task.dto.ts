@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsNumber, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsNumber, IsInt, IsBoolean, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTaskDto {
@@ -25,6 +25,11 @@ export class CreateTaskDto {
   @IsInt()
   @Min(0)
   priority?: number;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  isUrgent?: boolean;
 
   @ApiPropertyOptional({ example: 4.5 })
   @IsOptional()

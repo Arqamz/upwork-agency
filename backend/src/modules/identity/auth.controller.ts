@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Patch, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -8,6 +19,7 @@ import {
   UpdateProfileDto,
   SwitchOrgDto,
 } from './dto';
+import { CreateUpworkAccountDto } from './dto/upwork-account.dto';
 import { Public, CurrentUser } from '@/common/decorators';
 import { JwtPayload } from '@/common/interfaces';
 
@@ -69,5 +81,44 @@ export class AuthController {
   async logout(@CurrentUser() payload: JwtPayload) {
     await this.authService.logout(payload.sub);
     return { message: 'Logged out successfully' };
+  }
+
+  // ── Upwork Account Management ──────────────────────────────────────────
+
+  @Get('upwork-accounts')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List linked Upwork accounts for current user' })
+  async getUpworkAccounts(@CurrentUser() payload: JwtPayload) {
+    return this.authService.getUpworkAccounts(payload.sub);
+  }
+
+  @Post('upwork-accounts')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Link a new Upwork account' })
+  async createUpworkAccount(
+    @CurrentUser() payload: JwtPayload,
+    @Body() dto: CreateUpworkAccountDto,
+  ) {
+    return this.authService.createUpworkAccount(payload.sub, dto);
+  }
+
+  @Delete('upwork-accounts/:id')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Unlink an Upwork account' })
+  async deleteUpworkAccount(
+    @CurrentUser() payload: JwtPayload,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.authService.deleteUpworkAccount(payload.sub, id);
+  }
+
+  @Patch('upwork-accounts/:id/default')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Set an Upwork account as default' })
+  async setDefaultUpworkAccount(
+    @CurrentUser() payload: JwtPayload,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.authService.setDefaultUpworkAccount(payload.sub, id);
   }
 }

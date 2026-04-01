@@ -70,6 +70,7 @@ model User {
   meetings      Meeting[]      @relation("MeetingCloser")
   syncedChats       ChatMessage[]  @relation("ChatSyncedBy")
   addedProjectLinks ProjectLink[]  @relation("ProjectLinkAddedBy")
+  upworkAccounts    UpworkAccount[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -204,8 +205,9 @@ model Project {
   coverLetter    String?   @map("cover_letter")
   videoScript    String?   @map("video_script")
   upworkAccount  String?   @map("upwork_account")
-  bidAmount      Float?    @map("bid_amount")
-  bidSubmittedAt DateTime? @map("bid_submitted_at")
+  bidAmount          Float?    @map("bid_amount")
+  suggestedBidAmount Float?    @map("suggested_bid_amount")
+  bidSubmittedAt     DateTime? @map("bid_submitted_at")
 
   // Script Review (Lead -> Bidder)
   scriptReviewStatus   ReviewStatus? @map("script_review_status")
@@ -370,6 +372,7 @@ enum TaskStatus {
   IN_REVIEW
   DONE
   BLOCKED
+  FINALISED
 }
 
 model Task {
@@ -384,6 +387,7 @@ model Task {
   description    String?
   status         TaskStatus @default(TODO)
   priority       Int        @default(0)
+  isUrgent       Boolean    @default(false) @map("is_urgent")
   estimatedHours Float?     @map("estimated_hours")
   completedAt    DateTime?  @map("completed_at")
 
@@ -425,6 +429,26 @@ model QAReview {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("qa_reviews")
+}
+
+// -------------------------------------------------------
+// Upwork Accounts (Linked by Closers)
+// -------------------------------------------------------
+
+model UpworkAccount {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accountName String  @map("account_name")
+  profileUrl  String? @map("profile_url")
+  isDefault   Boolean @default(false) @map("is_default")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId], map: "idx_upwork_accounts_user")
+  @@map("upwork_accounts")
 }
 
 // -------------------------------------------------------
