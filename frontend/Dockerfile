@@ -1,9 +1,9 @@
 # ── Stage 1: Install dependencies ─────────────────────────────────────────────
-FROM oven/bun:1 AS install
+FROM node:20-slim AS install
 
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY package.json ./
+RUN npm install
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
 FROM install AS build
@@ -17,7 +17,7 @@ COPY next.config.js tsconfig.json tailwind.config.ts postcss.config.js ./
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN bun run build
+RUN npm run build
 
 # ── Stage 3: Production ──────────────────────────────────────────────────────
 FROM node:20-slim AS production

@@ -1,9 +1,9 @@
 # ── Stage 1: Install dependencies ─────────────────────────────────────────────
-FROM oven/bun:1 AS install
+FROM node:20-slim AS install
 
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
 FROM install AS build
@@ -12,7 +12,7 @@ COPY src/ src/
 COPY prisma/ prisma/
 COPY tsconfig.json nest-cli.json prisma.config.ts ./
 
-RUN bunx prisma generate && bun run build
+RUN npx prisma generate && npm run build
 
 # ── Stage 3: Production ──────────────────────────────────────────────────────
 FROM node:20-slim AS production
@@ -32,4 +32,4 @@ EXPOSE 3001
 ENV NODE_ENV=production
 ENV PORT=3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]

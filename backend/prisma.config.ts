@@ -6,7 +6,7 @@ export default defineConfig({
   earlyAccess: true,
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),
   migrations: {
-    seed: 'bun ./prisma/seed.ts',
+    seed: 'tsx ./prisma/seed.ts',
   },
   datasource: {
     url: process.env.DATABASE_URL!,
